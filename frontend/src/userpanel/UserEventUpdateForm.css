@@ -1,0 +1,226 @@
+/* UserEventUpdateForm.css */
+
+.userpanel-form {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.userpanel-modal-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.userpanel-form-group {
+  margin-bottom: 20px;
+}
+
+.userpanel-form-group label {
+  display: block;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.userpanel-form-group input,
+.userpanel-form-group select,
+.userpanel-form-group textarea {
+  width: 100%;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+  min-height: 48px;
+}
+
+.userpanel-form-group input:focus,
+.userpanel-form-group select:focus,
+.userpanel-form-group textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.readonly-box {
+  background-color: #e9ecef !important;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+.userpanel-form-group input[type="file"] {
+  padding: 8px;
+  border: 2px dashed #ddd;
+  background-color: white;
+  cursor: pointer;
+}
+
+.userpanel-form-group input[type="file"]:hover {
+  border-color: #007bff;
+}
+
+.userpanel-img-preview {
+  max-width: 100px;
+  max-height: 100px;
+  margin: 5px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  object-fit: cover;
+}
+
+.userpanel-video-preview {
+  width: 200px;
+  height: 120px;
+  object-fit: cover;
+  margin: 4px 0;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #f8f8f8;
+  display: block;
+}
+
+.userpanel-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.userpanel-btn-submit {
+  background-color: #28a745;
+  color: white;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.userpanel-btn-submit:hover {
+  background-color: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.userpanel-btn-submit:active {
+  transform: translateY(0);
+}
+
+/* File upload styling */
+.userpanel-form-group input[type="file"] {
+  position: relative;
+  background-color: white;
+  padding: 40px 20px;
+  text-align: center;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.userpanel-form-group input[type="file"]:hover {
+  border-color: #007bff;
+  background-color: #f8f9ff;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .userpanel-form {
+    margin: 10px;
+    padding: 15px;
+  }
+  
+  .userpanel-modal-title {
+    font-size: 20px;
+  }
+  
+  .userpanel-img-preview {
+    max-width: 80px;
+    max-height: 80px;
+  }
+  
+  .userpanel-video-preview {
+    max-width: 100%;
+    max-height: 150px;
+  }
+}
+
+/* Additional styling for better UX */
+.userpanel-form-group input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.userpanel-form-group input[type="number"]::-webkit-outer-spin-button,
+.userpanel-form-group input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.userpanel-form-group select {
+  cursor: pointer;
+ 
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 20px;
+  padding-right: 40px;
+}
+
+/* Error state styling */
+.userpanel-form-group input:invalid,
+.userpanel-form-group select:invalid {
+  border-color: #dc3545;
+}
+
+.userpanel-form-group input:invalid:focus,
+.userpanel-form-group select:invalid:focus {
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25);
+}
+
+/* Modern styling for event details fields */
+.event-details-group {
+
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  max-width: 420px;
+ 
+}
+
+.event-details-label {
+  font-size: 1rem;
+  color: #1a237e;
+  font-weight: 500;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.event-details-readonly,
+.event-details-textarea {
+  background: #e3e7ef;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 1rem;
+  color: #222;
+  margin-bottom: 18px;
+  width: 100%;
+  box-sizing: border-box;
+  resize: none;
+}
+
+.event-details-textarea {
+  min-height: 48px;
+  max-height: 120px;
+}
+
+@media (max-width: 600px) {
+  .event-details-group {
+    padding: 12px 4px;
+    max-width: 98vw;
+  }
+}

@@ -1,0 +1,133 @@
+body {
+  background: #f4f6fa;
+}
+
+#pdf-content {
+  width: 800px;
+  padding: 32px 32px 24px 32px;
+  background: #fff;
+  color: #222;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10), 0 1.5px 4px rgba(0,0,0,0.08);
+  margin: 32px auto;
+  font-family: 'Segoe UI', 'Arial', sans-serif;
+}
+
+.pdf-header-img {
+  width: 100%;
+  max-width: 800px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 12px 12px 0 0;
+}
+
+.pdf-header-mpcc {
+  margin-bottom: 4px;
+  background: #fff;
+  border-radius: 12px 12px 0 0;
+  padding-top: 8px;
+}
+.pdf-header-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+.pdf-header-topbar-left, .pdf-header-topbar-right {
+  min-width: 100px;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+}
+.pdf-header-label {
+  line-height: 1.1;
+  font-size: 12px;
+  font-family: Arial, sans-serif;
+}
+.pdf-header-blue {
+  color: #1a237e;
+  font-weight: bold;
+}
+.pdf-header-center {
+  align-items: center;
+  margin-top: 0;
+  justify-content: center;
+  flex-direction: column;
+}
+.pdf-header-title-col {
+  flex-direction: column;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  margin-top: 6px;
+}
+.pdf-header-title {
+  font-size: 16px !important;
+  font-weight: bold;
+  color: #1a237e;
+  margin-bottom: 1px;
+  letter-spacing: 0.5px;
+}
+.pdf-header-address {
+  font-size: 14px !important;
+  color: #1a237e;
+}
+.pdf-header-logo-main {
+  max-width: 48px !important;
+}
+.pdf-header-divider {
+  border: none;
+  border-top: 1.2px solid #1a237e;
+  margin: 2px 0 4px 0;
+}
+.pdf-hindi-text {
+  font-size: 14px !important;
+  font-family: 'Noto Sans', 'Mangal', Arial, sans-serif !important;
+}
+
+.pdf-section {
+  font-size: 17px;
+  text-align: left;
+  margin: 24px 0 16px 0;
+  line-height: 1.7;
+}
+
+.pdf-section b {
+  color: #1a73e8;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.pdf-photos-section, .pdf-media-photos-section {
+  margin-top: 18px;
+}
+
+.pdf-photos-section b, .pdf-media-photos-section b {
+  font-size: 16px;
+  color: #222;
+  margin-bottom: 8px;
+  display: inline-block;
+}
+
+.pdf-photo-grid, .pdf-media-photo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.pdf-photo, .pdf-media-photo {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1.5px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  background: #fafbfc;
+}
+
+hr {
+  margin: 18px 0 24px 0;
+  border: none;
+  border-top: 2px solid #e3e6ee;
+} 
