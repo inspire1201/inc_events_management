@@ -1,27 +1,3 @@
-// import React from "react";
-// import "./FirstPage.css";
-
-// const FirstPage = ({ onStart }) => {
-//   return (
-//     <div className="firstpage-bg">
-//       <div className="firstpage-logo">
-//         <span className="firstpage-logo-text">INC</span>
-//       </div>
-//       <h1 className="firstpage-heading animate-slidein">Welcome to<br />Indian National Congress Party</h1>
-//       <h2 className="firstpage-subheading animate-fadein">भारतीय कांग्रेस पार्टी में<br />आपका स्वागत है</h2>
-//       <div className="firstpage-event animate-glow">Event Management System</div>
-//       <button
-//         className="firstpage-start-btn"
-//         onClick={onStart}
-//       >
-//         START
-//       </button>
-//     </div>
-//   );
-// };
-
-// export default FirstPage; 
-
 import React, { useState, useEffect } from 'react';
 
 const FirstPage = ({ onStart }) => {
