@@ -5,6 +5,7 @@ import AddEventForm from "./AddEventForm.jsx";
 import EventReport from "./EventReport.jsx";
 import UserDetailModal from "./UserDetailModal.jsx";
 import { useNavigate } from "react-router-dom";
+import { Clock3, History, PlusCircle } from "lucide-react";
 
 const TEXT = {
   en: {
@@ -110,8 +111,9 @@ const Admin = ({ language = "hi" }) => {
   });
 
   const apiUrl = import.meta.env.VITE_REACT_APP_API_URL;
-
   useEffect(() => {
+    if (!user) return; 
+
     fetch(`${apiUrl}/api/user_visits/${user.id}`)
       .then((res) => res.json())
       .then((data) => {
@@ -126,7 +128,7 @@ const Admin = ({ language = "hi" }) => {
       .then((res) => res.json())
       .then((data) => setEvents(data))
       .catch((err) => console.error("Error fetching events:", err));
-  }, [filter, user.id, t.noVisit]);
+  }, [filter, user, t.noVisit]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -529,36 +531,49 @@ const Admin = ({ language = "hi" }) => {
 
         {/* Filter and Add Button Row */}
         <div className="bg-white shadow-sm border border-gray-200 p-4 lg:p-6 mb-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-6">
-              <label className="flex items-center space-x-2 cursor-pointer">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+              <label
+                className={`flex items-center px-4 py-2 rounded-full border cursor-pointer transition ${
+                  filter === "ongoing"
+                    ? "bg-green-100 border-green-500 text-green-700"
+                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
+                }`}
+              >
                 <input
                   type="radio"
                   checked={filter === "ongoing"}
                   onChange={() => setFilter("ongoing")}
-                  className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
+                  className="hidden"
                 />
-                <span className="text-sm font-medium text-gray-700">
-                  {t.ongoing}
-                </span>
+                <Clock3 className="w-4 h-4 mr-2" />
+                <span className="text-sm font-medium">{t.ongoing}</span>
               </label>
-              <label className="flex items-center space-x-2 cursor-pointer">
+
+              <label
+                className={`flex items-center px-4 py-2 rounded-full border cursor-pointer transition ${
+                  filter === "previous"
+                    ? "bg-blue-100 border-blue-500 text-blue-700"
+                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
+                }`}
+              >
                 <input
                   type="radio"
                   checked={filter === "previous"}
                   onChange={() => setFilter("previous")}
-                  className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
+                  className="hidden"
                 />
-                <span className="text-sm font-medium text-gray-700">
-                  {t.previous}
-                </span>
+                <History className="w-4 h-4 mr-2" />
+                <span className="text-sm font-medium">{t.previous}</span>
               </label>
             </div>
+
             <button
-              className="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
               onClick={handleOpenAddModal}
+              className="flex items-center px-4 py-2 rounded-full border bg-purple-100 border-purple-500 text-purple-700 hover:bg-purple-200 transition"
             >
-              {t.addEvent}
+              <PlusCircle className="w-4 h-4 mr-2" />
+              <span className="text-sm font-medium">{t.addEvent}</span>
             </button>
           </div>
         </div>
@@ -579,6 +594,9 @@ const Admin = ({ language = "hi" }) => {
                     {t.startDate}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    {t.endDate}
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     {t.action}
                   </th>
                 </tr>
@@ -592,6 +610,7 @@ const Admin = ({ language = "hi" }) => {
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                       {idx + 1}
                     </td>
+
                     <td className="px-4 py-4 whitespace-nowrap">
                       <button
                         className="text-sm text-orange-600 hover:text-orange-800 font-medium hover:underline focus:outline-none"
@@ -607,6 +626,16 @@ const Admin = ({ language = "hi" }) => {
                         </div>
                         <div className="text-gray-600">
                           {formatDateTime(ev.start_date_time).time}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="space-y-1">
+                        <div className="font-medium">
+                          {formatDateTime(ev.end_date_time).date}
+                        </div>
+                        <div className="text-gray-600">
+                          {formatDateTime(ev.end_date_time).time}
                         </div>
                       </div>
                     </td>
