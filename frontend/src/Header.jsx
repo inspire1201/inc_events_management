@@ -28,7 +28,7 @@ function Header({ language, setLanguage }) {
       home: "होम",
       userPanel: "यूज़र पैनल",
       adminPanel: "एडमिन पैनल",
-      logout: "लॉगआउट",
+      logout: "लॉगआउट",                                                                                                  
       switch: "अंग्रेज़ी में बदलें",
       logoutConfirmTitle: "क्या आप सुनिश्चित हैं?",
       logoutConfirmText: "क्या आप लॉगआउट करना चाहते हैं?",
