@@ -80,36 +80,34 @@ function toMySQLDateTime(isoString) {
 }
 
 
-exports.login = (req, res) => {
+exports.login = async (req, res) => {
   const { pin } = req.body;
+  console.log("📩 Received login request with pin:", pin);
+
   if (!pin) {
     return res.status(400).json({ error: 'पिन आवश्यक है' });
   }
 
-  db.query('SELECT * FROM users WHERE Pin = ?', [pin], (err, results) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ error: 'डेटाबेस त्रुटि' });
-    }
+  try {
+    const [results] = await db.query('SELECT * FROM users WHERE Pin = ?', [pin]);
+    console.log("✅ Query result:", results);
+
     if (results.length === 0) {
       return res.status(401).json({ error: 'अमान्य पिन' });
     }
+
     const user = results[0];
 
-    // Log user visit
     const visitDateTime = toMySQLDateTime(new Date().toISOString());
-    const month = visitDateTime ? visitDateTime.slice(0, 7) : null; // e.g., 2025-07
+    const month = visitDateTime ? visitDateTime.slice(0, 7) : null;
 
-    if (visitDateTime) { // Only log if date is valid
-      db.query(
+    if (visitDateTime) {
+      await db.query(
         'INSERT INTO user_visits (user_id, visit_date_time, month) VALUES (?, ?, ?)',
-        [user.ID, visitDateTime, month],
-        (err) => {
-          if (err) console.error('Visit log error:', err);
-        }
+        [user.ID, visitDateTime, month]
       );
+      console.log("📝 Visit logged");
     }
-
 
     res.json({
       id: user.ID,
@@ -117,8 +115,13 @@ exports.login = (req, res) => {
       designation: user.Designation,
       pin: user.Pin
     });
-  });
+
+  } catch (err) {
+    console.error('❌ Database error:', err);
+    return res.status(500).json({ error: 'डेटाबेस त्रुटि' });
+  }
 };
+
 
 exports.getUserVisits = (req, res) => {
   const { user_id } = req.params;
