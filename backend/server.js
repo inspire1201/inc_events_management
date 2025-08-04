@@ -13,8 +13,10 @@ const app = express();
 
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://inceventsmanagement-production.up.railway.app'
+  'http://inc-frontend.s3-website-us-east-1.amazonaws.com', // Example S3 URL
+  'https://ajay-bucket.s3.amazonaws.com',
 ];
+
 
 app.use(cors({
   origin: function (origin, callback) {
