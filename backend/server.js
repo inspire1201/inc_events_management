@@ -12,7 +12,7 @@ const app = express();
 
 
 const allowedOrigins = [
-  'http://localhost:5173',
+  // 'http://localhost:5173',
   'http://inc-frontend.s3-website-us-east-1.amazonaws.com'
 ];
 
@@ -42,6 +42,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // API Routes
 app.use('/api', authRoutes);
 app.use('/api', eventRoutes);
+app.get('/', (req, res) => {
+  res.send('API is working!');
+});
+
 
 const PORT = process.env.PORT || 5000;
 
