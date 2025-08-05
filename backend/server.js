@@ -31,9 +31,8 @@ const corsOptions = {
   credentials: true
 };
 
-// ✅ Apply CORS before routes
-app.use(cors(corsOptions));
 
+app.use(cors());
 
 
 // ✅ Parse incoming JSON requests
