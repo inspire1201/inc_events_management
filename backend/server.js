@@ -10,48 +10,48 @@ const eventRoutes = require('./routes/eventRoutes');
 
 const app = express();
 
-
+// ✅ List of allowed frontend origins
 const allowedOrigins = [
-   'http://44.197.21.241:3000',
-   'http://localhost:3000',
-   'http://172.31.86.89:3000'
+  'http://44.197.21.241:3000', // Your EC2 public IP
+  'http://localhost:3000',     // Local development
+  'http://172.31.86.89:3000'   // Internal EC2 IP
 ];
 
-
-app.use(cors({
+// ✅ CORS config
+const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.error('Blocked by CORS:', origin);
+      console.error('❌ Blocked by CORS:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
-}));
+};
 
+// ✅ Apply CORS before routes
+app.use(cors(corsOptions));
 
-
+// ✅ Parse incoming JSON requests
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-
-
-app.use(express.json());
-
+// ✅ Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// API Routes
+// ✅ API routes
 app.use('/api', authRoutes);
 app.use('/api', eventRoutes);
+
+// ✅ Test route
 app.get('/', (req, res) => {
   res.send('API is working!');
 });
 
-
+// ✅ Start server
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
-
-
