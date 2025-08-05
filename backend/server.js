@@ -12,8 +12,9 @@ const app = express();
 
 
 const allowedOrigins = [
-  // 'http://localhost:5173',
-  'http://inc-frontend.s3-website-us-east-1.amazonaws.com'
+   'http://44.197.21.241:3000',
+   'http://localhost:3000',
+   'http://172.31.86.89:3000'
 ];
 
 
