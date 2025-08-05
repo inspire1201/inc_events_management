@@ -12,7 +12,11 @@ const app = express();
 
 
 
-app.use(cors());
+const corsOptions = {
+  origin: 'http://44.197.21.241',
+  credentials: true,
+};
+app.use(cors(corsOptions));
 
 
 // ✅ Parse incoming JSON requests
