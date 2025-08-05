@@ -10,26 +10,6 @@ const eventRoutes = require('./routes/eventRoutes');
 
 const app = express();
 
-const allowedOrigins = [
-  'http://44.197.21.241',        // ✅ your live frontend via NGINX
-  'http://44.197.21.241:3000',   // dev frontend (optional)
-  'http://localhost:3000',       // local dev
-  'http://172.31.86.89:3000'     // internal EC2 IP (optional)
-];
-
-// ✅ CORS config
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.error('❌ Blocked by CORS:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
-};
 
 
 app.use(cors());
