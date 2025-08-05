@@ -10,11 +10,11 @@ const eventRoutes = require('./routes/eventRoutes');
 
 const app = express();
 
-// ✅ List of allowed frontend origins
 const allowedOrigins = [
-  'http://44.197.21.241:3000', // Your EC2 public IP
-  'http://localhost:3000',     // Local development
-  'http://172.31.86.89:3000'   // Internal EC2 IP
+  'http://44.197.21.241',        // ✅ your live frontend via NGINX
+  'http://44.197.21.241:3000',   // dev frontend (optional)
+  'http://localhost:3000',       // local dev
+  'http://172.31.86.89:3000'     // internal EC2 IP (optional)
 ];
 
 // ✅ CORS config
