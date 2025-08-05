@@ -32,14 +32,9 @@ const corsOptions = {
 };
 
 // ✅ Apply CORS before routes
-//app.use(cors(corsOptions));
+app.use(cors(corsOptions));
 
-// ✅ Allow all origins for now (or change this to just 1 IP if needed)
-app.use(cors({
-  origin: '*', // Use '*' for open access or set specific origin
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: false // Keep false if using '*' for origin
-}));
+
 
 // ✅ Parse incoming JSON requests
 app.use(express.json());
