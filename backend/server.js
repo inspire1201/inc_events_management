@@ -12,30 +12,38 @@ const app = express();
 
 
 
+const allowedOrigins = [
+  'https://inceventsmanagement-production.up.railway.app',
+  'http://localhost:5173',
+];
+
 const corsOptions = {
-  origin: 'http://44.197.21.241',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 };
+
 app.use(cors(corsOptions));
 
 
-// ✅ Parse incoming JSON requests
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ✅ API routes
 app.use('/api', authRoutes);
 app.use('/api', eventRoutes);
 
-// ✅ Test route
 app.get('/', (req, res) => {
   res.send('API is working!');
 });
 
-// ✅ Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
