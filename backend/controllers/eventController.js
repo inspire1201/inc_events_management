@@ -1,6 +1,6 @@
 
 const db = require("../config/db");
-const cloudinary = require("../config/cloudinary"); // configured v2
+const cloudinary = require("../config/cloudinary");
 const { Readable } = require("stream");
 
 const toMySQLDateTime = (date) => {
@@ -47,6 +47,7 @@ exports.getEvents = async (req, res) => {
 };
 
 exports.markEventAsViewed = async (req, res) => {
+  console.log("📩 Request body received:", req.body);
   try {
     const { event_id, user_id } = req.body;
     const viewDateTime = toMySQLDateTime(new Date().toISOString());
@@ -101,7 +102,7 @@ exports.updateEvent = async (req, res) => {
     }
 
     await db.query(
-      `INSERT INTO event_updates 
+      `INSERT INTO event_updates
          (event_id, user_id, name, description, start_date_time, end_date_time, issue_date,
           location, attendees, update_date, photos, video, media_photos, type)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -122,7 +123,16 @@ exports.updateEvent = async (req, res) => {
 
 exports.addEvent = async (req, res) => {
   try {
-    const { name, description, start_date_time, end_date_time, issue_date, location, type, user } = req.body;
+    const {
+      name,
+      description,
+      start_date_time,
+      end_date_time,
+      issue_date,
+      location,
+      type,
+      user
+    } = req.body;
 
     const photos = [];
     if (req.files?.photos) {
@@ -137,16 +147,34 @@ exports.addEvent = async (req, res) => {
       video = await uploadToCloudinary(req.files.video[0], "event_videos");
     }
 
-    const status = new Date(start_date_time) > new Date() ? "ongoing" : "previous";
-
+    // ✅ Status logic: event is "ongoing" if end date is within the past 5 days (including today)
+    const endDate = new Date(end_date_time);
+    const now = new Date();
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(now.getDate() - 5);
+    const status = endDate < fiveDaysAgo ? "previous" : "ongoing";
+    // 🔄 Save event to database
     const [result] = await db.query(
       `INSERT INTO events
          (name, description, start_date_time, end_date_time, issue_date, location, type, status, photos, video)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [name, description, start_date_time, end_date_time, issue_date, location, type, status, JSON.stringify(photos), video]
+      [
+        name,
+        description,
+        start_date_time,
+        end_date_time,
+        issue_date,
+        location,
+        type,
+        status,
+        JSON.stringify(photos),
+        video
+      ]
     );
 
     const event_id = result.insertId;
+
+    // 🎯 If user is "All Jila Addhyaksh", assign this event to all non-admin users
     if (user === "All Jila Addhyaksh") {
       const [users] = await db.query('SELECT ID FROM users WHERE Designation != "Admin"');
       if (users.length) {
@@ -161,6 +189,7 @@ exports.addEvent = async (req, res) => {
     res.status(500).json({ error: "डेटाबेस त्रुटि", details: err.message });
   }
 };
+
 
 exports.getEventReport = async (req, res) => {
   try {
@@ -195,6 +224,38 @@ exports.getUserEventDetails = async (req, res) => {
     res.json(rows[0] || {});
   } catch (err) {
     console.error("getUserEventDetails error:", err);
+    res.status(500).json({ error: "डेटाबेस त्रुटि", details: err.message });
+  }
+};
+
+// under this comment all code for delete all events for developemnt purpose only
+
+exports.deleteEventsByStatus = async (req, res) => {
+  try {
+    const { status } = req.query;
+
+    if (!status || (status !== 'ongoing' && status !== 'previous')) {
+      return res.status(400).json({ error: 'Invalid or missing status. Must be "ongoing" or "previous".' });
+    }
+
+    const [events] = await db.query('SELECT id FROM events WHERE status = ?', [status]);
+    const eventIds = events.map(ev => ev.id);
+
+    if (eventIds.length === 0) {
+      return res.json({ message: `No ${status} events found to delete.` });
+    }
+
+    await db.query('DELETE FROM event_users WHERE event_id IN (?)', [eventIds]);
+    await db.query('DELETE FROM event_views WHERE event_id IN (?)', [eventIds]);
+    await db.query('DELETE FROM event_updates WHERE event_id IN (?)', [eventIds]);
+
+    const [result] = await db.query('DELETE FROM events WHERE status = ?', [status]);
+
+    res.json({
+      message: `✅ ${result.affectedRows} "${status}" event(s) deleted successfully.`,
+    });
+  } catch (err) {
+    console.error("deleteEventsByStatus error:", err);
     res.status(500).json({ error: "डेटाबेस त्रुटि", details: err.message });
   }
 };

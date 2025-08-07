@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import html2pdf from "html2pdf.js";
 import downloadImg from '../assets/download.png';
 import Swal from 'sweetalert2';
-import './PdfExportButton.css'; // Loader CSS (create if not exists)
 
 const pdfHideStyle = `
   @media print {
@@ -23,15 +22,14 @@ const pdfHideStyle = `
   .pdf-hindi-text { font-size: 14px !important; font-family: 'Noto Sans', 'Mangal', Arial, sans-serif !important; }
 `;
 
-const PdfExportButton = ({ targetId, filename = 'event-report.pdf', children, rowsPerPage = 20 }) => {
+const PdfExportButton = ({ targetId, filename = 'event-report.pdf', children, rowsPerPage = 20, headerHtml = '' }) => {
   const [isLoading, setIsLoading] = useState(false);
+
   const handlePDF = async () => {
     const element = document.getElementById(targetId);
     if (element) {
       setIsLoading(true);
-      // Add class to hide elements for PDF
       element.classList.add('pdf-exporting');
-      // Add style to head if not present
       let style = document.getElementById('pdf-hide-style');
       if (!style) {
         style = document.createElement('style');
@@ -39,36 +37,32 @@ const PdfExportButton = ({ targetId, filename = 'event-report.pdf', children, ro
         style.innerHTML = pdfHideStyle;
         document.head.appendChild(style);
       }
-      // --- Repeat header for each page ---
-      // Find table rows or list items to split
+
       let rows = Array.from(element.querySelectorAll('tbody tr'));
       if (rows.length === 0) rows = Array.from(element.querySelectorAll('li'));
-      if (rows.length === 0) rows = Array.from(element.children); // fallback: split by children
+      if (rows.length === 0) rows = Array.from(element.children);
       const totalPages = Math.ceil(rows.length / rowsPerPage) || 1;
-      // Save original HTML
       const originalHTML = element.innerHTML;
-      // Prepare paginated content
       let paginatedHTML = '';
+
       for (let i = 0; i < totalPages; i++) {
-       
         paginatedHTML += `
           <div class="pdf-header-mpcc">
-            <div class="pdf-header-topbar" style="display:flex; justify-content:space-between; align-items:flex-start; width:100%;">
-              <div class="pdf-header-topbar-left" style="text-align:left;">
+            <div class="pdf-header-topbar">
+              <div class="pdf-header-topbar-left">
                 <div class="pdf-header-label pdf-header-blue">ई-मेल: 'कांग्रेस'</div>
                 <div class="pdf-header-label">E-mail: orgmpcct1@gmail.com</div>
                 <div class="pdf-header-label">www.mpcongress.org</div>
               </div>
-              <div>  <img src="${downloadImg}" alt="Logo" class="pdf-header-logo-main" style="display:block; margin:0 auto; max-width:48px;" /></div>
-              <div class="pdf-header-topbar-right" style="text-align:right;">
+              <div><img src="${downloadImg}" alt="Logo" class="pdf-header-logo-main" /></div>
+              <div class="pdf-header-topbar-right">
                 <div class="pdf-header-label pdf-header-blue">कार्यालय = 0755-2551512</div>
                 <div class="pdf-header-label">0755-2555452</div>
                 <div class="pdf-header-label">फैक्स = 0755-2577981</div>
               </div>
             </div>
-            <div class="pdf-header-row pdf-header-center" style="justify-content:center; align-items:center; flex-direction:column; margin-top: 2px;">
-            
-              <div class="pdf-header-title-col" style="display:flex; flex-direction:column; align-items:center; margin-top:6px;">
+            <div class="pdf-header-row pdf-header-center">
+              <div class="pdf-header-title-col">
                 <div class="pdf-header-title pdf-hindi-text">मध्यप्रदेश कांग्रेस कमेटी</div>
                 <div class="pdf-header-address pdf-hindi-text">इंदिरा भवन, शिवाजी नगर, भोपाल-462 016 (म.प्र.)</div>
               </div>
@@ -77,39 +71,39 @@ const PdfExportButton = ({ targetId, filename = 'event-report.pdf', children, ro
           <br/>
           <hr class="pdf-header-divider" />
         `;
-        // Page content
-        if (rows.length > 0) {
-          // Table or list
-          const pageRows = rows.slice(i * rowsPerPage, (i + 1) * rowsPerPage);
-          if (element.querySelector('table')) {
-            // Table: clone table structure, replace tbody with pageRows
-            const table = element.querySelector('table').cloneNode(true);
-            const tbody = table.querySelector('tbody');
-            if (tbody) {
-              tbody.innerHTML = '';
-              pageRows.forEach(row => tbody.appendChild(row.cloneNode(true)));
-            }
-            paginatedHTML += table.outerHTML;
-          } else if (element.querySelector('ul')) {
-            // List: clone ul structure, replace children with pageRows
-            const ul = element.querySelector('ul').cloneNode(false);
-            pageRows.forEach(row => ul.appendChild(row.cloneNode(true)));
-            paginatedHTML += ul.outerHTML;
-          } else {
-            // Generic: just append the nodes
-            pageRows.forEach(row => paginatedHTML += row.outerHTML);
-          }
-        } else {
-          // No rows: just use original content
-          paginatedHTML += originalHTML;
+
+
+        if (i === 0 && headerHtml) {
+          paginatedHTML += headerHtml;
         }
-        // Page break except last page
-        if (i < totalPages - 1) paginatedHTML += '<div style="page-break-after:always"></div>';
+
+
+
+        const pageRows = rows.slice(i * rowsPerPage, (i + 1) * rowsPerPage);
+        if (element.querySelector('table')) {
+          const table = element.querySelector('table').cloneNode(true);
+          const tbody = table.querySelector('tbody');
+          if (tbody) {
+            tbody.innerHTML = '';
+            pageRows.forEach(row => tbody.appendChild(row.cloneNode(true)));
+          }
+          paginatedHTML += table.outerHTML;
+        } else if (element.querySelector('ul')) {
+          const ul = element.querySelector('ul').cloneNode(false);
+          pageRows.forEach(row => ul.appendChild(row.cloneNode(true)));
+          paginatedHTML += ul.outerHTML;
+        } else {
+          pageRows.forEach(row => paginatedHTML += row.outerHTML);
+        }
+
+        if (i < totalPages - 1) {
+          paginatedHTML += '<div style="page-break-after: always; break-after: page;"></div>';
+        }
       }
-      // Replace element content with paginated content
+
       const originalContent = element.innerHTML;
       element.innerHTML = paginatedHTML;
-      // Wait for all images to load
+
       const images = element.querySelectorAll('img');
       await Promise.all(Array.from(images).map(img => {
         if (img.complete) return Promise.resolve();
@@ -117,14 +111,13 @@ const PdfExportButton = ({ targetId, filename = 'event-report.pdf', children, ro
           img.onload = img.onerror = resolve;
         });
       }));
-      // Generate PDF
+
       html2pdf().from(element).set({
         margin: 0.5,
         filename,
         html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
       }).save().then(() => {
-        // Restore original content
         element.innerHTML = originalContent;
         element.classList.remove('pdf-exporting');
         setIsLoading(false);
@@ -147,17 +140,23 @@ const PdfExportButton = ({ targetId, filename = 'event-report.pdf', children, ro
   };
 
   return (
-    <div style={{ display: 'inline-block', position: 'relative' }}>
-      <button className="report-btn" onClick={handlePDF} type="button" disabled={isLoading}>
-        {children || 'Report'}
+    <div className="inline-block relative">
+      <button
+        className="report-btn bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2 px-4 rounded disabled:opacity-50 transition"
+        onClick={handlePDF}
+        type="button"
+        disabled={isLoading}
+      >
+        {children || 'Download'}
       </button>
+
       {isLoading && (
-        <div className="pdf-loader-overlay">
-          <div className="pdf-loader-spinner"></div>
+        <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
+          <div className="w-8 h-8 border-4 border-gray-200 border-t-[#1a237e] rounded-full animate-spin"></div>
         </div>
       )}
     </div>
   );
 };
 
-export default PdfExportButton; 
+export default PdfExportButton;

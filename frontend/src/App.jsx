@@ -7,13 +7,14 @@ import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import UserPanel from "./userpanel/userpanel";
 import Header from "./Header";
 import Home from "./Home";
+import AllUsersSummary from "./userpanel/AllUsersSummary";
+import UserVisits from "./userpanel/UserVisits";
 
 function AppContent() {
-  const [step, setStep] = useState(1); // 1: FirstPage, 2: LanguagePage, 3: LoginPage
-  const [language, setLanguage] = useState("en"); // 'en' or 'hi'
+  const [step, setStep] = useState(1); 
+  const [language, setLanguage] = useState("en"); 
   const location = useLocation();
 
-  // FirstPage → LanguagePage
   if (step === 1) {
     return (
       <FirstPage
@@ -22,7 +23,6 @@ function AppContent() {
     );
   }
 
-  // LanguagePage → LoginPage
   if (step === 2) {
     return (
       <LanguagePage
@@ -35,12 +35,10 @@ function AppContent() {
     );
   }
 
-  // If on login page, show only Login (no header/background)
   if (location.pathname === "/") {
     return <Login language={language} />;
   }
 
-  // For all other routes, show header and routes
   return (
     <>
       <Header language={language} setLanguage={setLanguage} />

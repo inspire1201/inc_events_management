@@ -383,11 +383,12 @@
 // export default UserPanel;
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, BarChart3,Clock3, History } from "lucide-react";
+import { CalendarDays, BarChart3, Clock3, History } from "lucide-react";
 import Modal from "./Modal";
 import UserEventDetails from "./UserEventDetails";
 import UserEventUpdateForm from "./UserEventUpdateForm";
 import Swal from "sweetalert2";
+import { useAuth } from "../context/AuthContext";
 
 const TEXT = {
   en: {
@@ -448,6 +449,8 @@ const formatDateTime = (dateString) => {
 };
 
 const UserPanel = ({ language = "hi" }) => {
+  const { showReport, setShowReport } = useAuth();
+
   const t = TEXT[language] || TEXT.hi;
   const [eventType, setEventType] = useState("ongoing");
   const [modalType, setModalType] = useState(null);
@@ -471,28 +474,91 @@ const UserPanel = ({ language = "hi" }) => {
     }
   }, [navigate]);
 
-  const apiUrl = import.meta.env.VITE_REACT_APP_API_URL;
+  const apiUrl = import.meta.env.VITE_API_URL;
 
+  // useEffect(() => {
+  //   fetch(`${apiUrl}/api/user_visits/${user.id}`)
+  //   alert()
+  //     .then((res) => res.json())
+  //     .then((resData) => {
+  //       setLastVisit(
+  //         resData.last_visit
+  //           ? formatDateTime(resData.last_visit).date
+  //           : t.noVisit
+  //       );
+  //       setMonthlyCount(resData.monthly_count || 0);
+  //     })
+  //     .catch((err) => console.error("Error fetching visits:", err));
+
+  //   fetch(`${apiUrl}/api/events?status=${eventType}&user_id=${user.id}`)
+  //     .then((res) => res.json())
+  //     .then((data) => {
+  //       setEvents(data);
+  //     })
+  //     .catch((err) => console.error("Error fetching events:", err));
+  // }, [eventType, user.id, t.noVisit]);
   useEffect(() => {
-    fetch(`${apiUrl}/api/user_visits/${user.id}`)
-      .then((res) => res.json())
-      .then((resData) => {
+    if (!user?.id) {
+      console.log("❌ No user ID found!");
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => {
+          controller.abort();
+          console.error("⏱️ Visit API fetch timed out!");
+        }, 5000); // 5 seconds timeout
+
+        const visitRes = await fetch(`${apiUrl}/api/user_visits/${user.id}`, {
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeout); // Clear timeout on success
+
+        if (!visitRes.ok) {
+          console.error("❌ Visit API responded with error:", visitRes.status);
+          return;
+        }
+
+        const visitData = await visitRes.json();
+
         setLastVisit(
-          resData.last_visit
-            ? formatDateTime(resData.last_visit).date
+          visitData.last_visit
+            ? formatDateTime(visitData.last_visit).date
             : t.noVisit
         );
-        setMonthlyCount(resData.monthly_count || 0);
-      })
-      .catch((err) => console.error("Error fetching visits:", err));
+        setMonthlyCount(visitData.monthly_count || 0);
 
-    fetch(`${apiUrl}/api/events?status=${eventType}&user_id=${user.id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setEvents(data);
-      })
-      .catch((err) => console.error("Error fetching events:", err));
+        // Event fetch
+        const eventRes = await fetch(
+          `${apiUrl}/api/events?status=${eventType}&user_id=${user.id}`
+        );
+        const eventData = await eventRes.json();
+
+        setEvents(eventData);
+      } catch (err) {
+        console.error("❌ Error fetching dashboard data:", err);
+      }
+    };
+
+
+    fetchData();
   }, [eventType, user.id, t.noVisit]);
+
+  // const handleShowDetails = (event) => {
+  //   setSelectedEvent(event);
+  //   setModalType("details");
+
+  //   fetch(`${apiUrl}/api/event_view`, {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ event_id: event.id, user_id: user.id }),
+  //   })
+  //     .then(() => console.log("Event marked as viewed"))
+  //     .catch((err) => console.error("Error marking view:", err));
+  // };
 
   const handleShowDetails = (event) => {
     setSelectedEvent(event);
@@ -503,13 +569,20 @@ const UserPanel = ({ language = "hi" }) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ event_id: event.id, user_id: user.id }),
     })
-      .then(() => console.log("Event marked as viewed"))
-      .catch((err) => console.error("Error marking view:", err));
+      .then(() => {
+        return fetch(`${apiUrl}/api/event_report/${event.id}`);
+      })
+      .then((res) => res.json())
+      .then((updatedReport) => {
+        setShowReport(updatedReport); // ← this updates the prop in EventReport
+      })
+      .catch((err) => console.error("Error updating view/report:", err));
   };
+
 
   const handleUpdate = async (event) => {
     setSelectedEvent(event);
-    const apiUrl = import.meta.env.VITE_REACT_APP_API_URL;
+    const apiUrl = import.meta.env.VITE_API_URL;
     const user = JSON.parse(localStorage.getItem("user"));
     try {
       const res = await fetch(
@@ -525,28 +598,28 @@ const UserPanel = ({ language = "hi" }) => {
               ? JSON.parse(data.photos)
               : data.photos
             : event.photos
-            ? typeof event.photos === "string"
-              ? JSON.parse(event.photos)
-              : event.photos
-            : [],
+              ? typeof event.photos === "string"
+                ? JSON.parse(event.photos)
+                : event.photos
+              : [],
           media_photos: data.media_photos
             ? typeof data.media_photos === "string"
               ? JSON.parse(data.media_photos)
               : data.media_photos
             : event.media_photos
-            ? typeof event.media_photos === "string"
-              ? JSON.parse(event.media_photos)
-              : event.media_photos
-            : [],
+              ? typeof event.media_photos === "string"
+                ? JSON.parse(event.media_photos)
+                : event.media_photos
+              : [],
           video: data.video
             ? Array.isArray(data.video)
               ? data.video
               : [data.video]
             : event.video
-            ? Array.isArray(event.video)
-              ? event.video
-              : [event.video]
-            : [],
+              ? Array.isArray(event.video)
+                ? event.video
+                : [event.video]
+              : [],
         });
       } else {
         setUpdateForm({
@@ -739,15 +812,14 @@ const UserPanel = ({ language = "hi" }) => {
           </div>
         </div>
         {/* Filter Section */}
-        
+
         <div className="bg-white shadow-sm border border-gray-200 p-4 lg:p-6 mb-6">
           <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-6">
             <label
-              className={`flex items-center px-4 py-2 rounded-full border cursor-pointer transition ${
-                eventType === "ongoing"
-                  ? "bg-green-100 border-green-500 text-green-700"
-                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
-              }`}
+              className={`flex items-center px-4 py-2 rounded-full border cursor-pointer transition ${eventType === "ongoing"
+                ? "bg-green-100 border-green-500 text-green-700"
+                : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
+                }`}
             >
               <input
                 type="radio"
@@ -760,11 +832,10 @@ const UserPanel = ({ language = "hi" }) => {
             </label>
 
             <label
-              className={`flex items-center px-4 py-2 rounded-full border cursor-pointer transition ${
-                eventType === "previous"
-                  ? "bg-blue-100 border-blue-500 text-blue-700"
-                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
-              }`}
+              className={`flex items-center px-4 py-2 rounded-full border cursor-pointer transition ${eventType === "previous"
+                ? "bg-blue-100 border-blue-500 text-blue-700"
+                : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
+                }`}
             >
               <input
                 type="radio"
@@ -832,42 +903,44 @@ const UserPanel = ({ language = "hi" }) => {
                     </td>
                   </tr>
                 ) : (
-                  events.map((event, idx) => (
-                    <tr
-                      key={event.id}
-                      className="hover:bg-gray-50 transition-colors duration-150"
-                    >
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                        {idx + 1}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <button
-                          className="text-sm text-orange-600 hover:text-orange-800 font-medium hover:underline focus:outline-none"
-                          onClick={() => handleShowDetails(event)}
-                        >
-                          {event.name}
-                        </button>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                  [...events] 
+                    .sort((a, b) => new Date(b.start_date_time) - new Date(a.start_date_time)) 
+                    .map((event, idx) => (
+                      < tr
+                        key={event.id}
+                        className="hover:bg-gray-50 transition-colors duration-150"
+                      >
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                          {idx + 1}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
                           <button
-                            className="bg-gray-800 hover:bg-black text-white text-sm font-medium px-4 py-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                            className="text-sm text-orange-600 hover:text-orange-800 font-medium hover:underline focus:outline-none"
                             onClick={() => handleShowDetails(event)}
                           >
-                            {t.showDetails}
+                            {event.name}
                           </button>
-                          {eventType !== "previous" && (
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                             <button
-                              className="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                              onClick={() => handleUpdate(event)}
+                              className="bg-gray-800 hover:bg-black text-white text-sm font-medium px-4 py-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                              onClick={() => handleShowDetails(event)}
                             >
-                              {event.userHasUpdated ? "Edit" : t.update}
+                              {t.showDetails}
                             </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                            {eventType !== "previous" && (
+                              <button
+                                className="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                                onClick={() => handleUpdate(event)}
+                              >
+                                {event.userHasUpdated ? "Edit" : t.update}
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
                 )}
               </tbody>
             </table>
@@ -898,7 +971,7 @@ const UserPanel = ({ language = "hi" }) => {
           </Modal>
         )}
       </div>
-    </div>
+    </div >
   );
 };
 

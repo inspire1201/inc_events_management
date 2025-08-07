@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const eventController = require('../controllers/eventController');
-const uploadCloud = require('../middleware/upload'); // Import the multer setup for Cloudinary
+const uploadCloud = require('../middleware/upload');
 
 router.get('/events', eventController.getEvents);
 router.post('/event_view', eventController.markEventAsViewed);
@@ -27,5 +27,10 @@ router.post(
 
 router.get('/event_report/:event_id', eventController.getEventReport);
 router.get('/event_user_details/:event_id/:user_id', eventController.getUserEventDetails);
+
+
+// under this comment  route for delete all events for developemnt purpose only
+router.delete('/events', eventController.deleteEventsByStatus);
+
 
 module.exports = router;

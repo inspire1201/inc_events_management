@@ -125,58 +125,6 @@ const Page = () => {
           </div>
 
           <div className={`transform transition-all duration-1000 delay-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            {/* <div className="text-center mb-12">
-              <h3 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">पैनल का चयन करें</h3>
-              <p className="text-lg text-gray-600">Select Your Panel</p>
-              <div className="mt-4 h-0.5 w-32 bg-gradient-to-r from-orange-400 to-green-400 rounded-full mx-auto" />
-            </div> */}
-
-            {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-              {panels.map((panel, index) => {
-                const IconComponent = panel.icon;
-                return (
-                  <div
-                    key={panel.id}
-                    className={`group relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/20 hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-500 cursor-pointer ${panel.bgColor} hover:scale-105`}
-                    style={{ animationDelay: `${index * 100}ms` }}
-                    onClick={() => setSelectedPanel(panel.id)}
-                  >
-                    <div className={`absolute inset-0 bg-gradient-to-br ${panel.color} opacity-0 group-hover:opacity-5 rounded-3xl transition-opacity duration-300`} />
-                    
-                    <div className={`w-16 h-16 bg-gradient-to-br ${panel.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                      <IconComponent className="w-8 h-8 text-white" />
-                    </div>
-
-                    <h4 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-gray-900">
-                      {panel.title}
-                    </h4>
-                    <h5 className="text-lg font-semibold text-gray-600 mb-3">
-                      {panel.titleHindi}
-                    </h5>
-                    <p className="text-gray-600 mb-6 leading-relaxed">
-                      {panel.description}
-                    </p>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex space-x-1">
-                        <div className={`w-2 h-2 bg-gradient-to-r ${panel.color} rounded-full`} />
-                        <div className={`w-2 h-2 bg-gradient-to-r ${panel.color} rounded-full opacity-60`} />
-                        <div className={`w-2 h-2 bg-gradient-to-r ${panel.color} rounded-full opacity-30`} />
-                      </div>
-                      <ChevronRight className={`w-6 h-6 text-gray-400 group-hover:text-gray-600 transform group-hover:translate-x-1 transition-all duration-300`} />
-                    </div>
-
-                    {selectedPanel === panel.id && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-orange-400 to-green-400 rounded-full flex items-center justify-center animate-pulse">
-                        <div className="w-3 h-3 bg-white rounded-full" />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div> */}
-
-            {/* {selectedPanel && ( */}
               <div className="text-center animate-fadeIn">
                 <button className="group px-10 py-4 bg-gradient-to-r from-orange-500 to-green-600 text-white font-bold text-lg rounded-full shadow-2xl transform hover:scale-105 transition-all duration-300 hover:shadow-3xl">
                   <span className="flex items-center justify-center">
@@ -185,7 +133,6 @@ const Page = () => {
                   </span>
                 </button>
               </div>
-            {/* )} */}
           </div>
         </div>
       </main>
@@ -205,7 +152,7 @@ const Page = () => {
         </div>
       </footer>
 
-      <style jsx>{`
+      <style>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }

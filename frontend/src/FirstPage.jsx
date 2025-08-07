@@ -74,14 +74,6 @@ const FirstPage = ({ onStart }) => {
           </h1>
         </div>
 
-        {/* <div className={`text-center mb-8 transform transition-all duration-1000 delay-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-          <p className="text-xl md:text-2xl text-blue-600 font-semibold mb-2">
-            भारतीय कांग्रेस पार्टी में
-          </p>
-          <p className="text-lg md:text-xl text-blue-500">
-            आपका स्वागत है
-          </p>
-        </div> */}
 
         <div className={`text-center mb-5 transform transition-all duration-1000 delay-700 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
           <div className="inline-block px-6 py-3 bg-white/80 backdrop-blur-sm rounded-full shadow-lg border border-gray-200">

@@ -6,51 +6,10 @@ import EventReport from "./EventReport.jsx";
 import UserDetailModal from "./UserDetailModal.jsx";
 import { useNavigate } from "react-router-dom";
 import { Clock3, History, PlusCircle } from "lucide-react";
+import { ADMINTEXT } from "../Data/Langauge.js";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext.jsx";
 
-const TEXT = {
-  en: {
-    lastVisit: "Your last visit:",
-    monthlyCount: "Visits this month:",
-    ongoing: "Ongoing Events",
-    previous: "Previous Events",
-    addEvent: "Add Event",
-    sn: "S.no",
-    eventDetails: "Event Details",
-    startDate: "Start Date",
-    endDate: "End Date",
-    action: "Action",
-    showReport: "Report",
-    noVisit: "No visit",
-    eventAdded: "Event added successfully!",
-    eventAddFailed: "Failed to add event. Please try again.",
-    error: "An error occurred. Please try again.",
-    addingEvent: "Adding Event...",
-    pleaseWait: "Please wait while we add your event",
-    report: "Report",
-    close: "Close",
-  },
-  hi: {
-    lastVisit: "आपकी अंतिम यात्रा:",
-    monthlyCount: "इस माह की यात्राएँ:",
-    ongoing: "चल रहे आयोजन",
-    previous: "पिछले आयोजन",
-    addEvent: "आयोजन जोड़ें",
-    sn: "क्र.सं",
-    eventDetails: "आयोजन विवरण ",
-    startDate: "प्रारंभ तिथि",
-    endDate: "समाप्ति तिथि",
-    action: "कार्रवाई",
-    showReport: "रिपोर्ट दिखाएं",
-    noVisit: "कोई यात्रा नहीं",
-    eventAdded: "आयोजन सफलतापूर्वक जोड़ा गया!",
-    eventAddFailed: "आयोजन जोड़ना विफल। कृपया पुनः प्रयास करें।",
-    error: "एक त्रुटि हुई। कृपया पुनः प्रयास करें।",
-    addingEvent: "आयोजन जोड़ रहे हैं...",
-    pleaseWait: "कृपया प्रतीक्षा करें जबकि हम आपका आयोजन जोड़ रहे हैं",
-    report: "रिपोर्ट",
-    close: "बंद करें",
-  },
-};
 
 const eventTypes = ["धरना", "बैठक", "बंद", "रैली", "सभा", "गायपान"];
 const users = ["All Jila Addhyaksh"];
@@ -71,9 +30,10 @@ const formatDateTime = (dateString) => {
 };
 
 const Admin = ({ language = "hi" }) => {
-  const t = TEXT[language] || TEXT.hi;
+  const { showReport, setShowReport } = useAuth();
+
+  const t = ADMINTEXT[language] || ADMINTEXT.hi;
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showReport, setShowReport] = useState(null);
   const [filter, setFilter] = useState("ongoing");
   const [events, setEvents] = useState([]);
   const [userDetailModal, setUserDetailModal] = useState(null);
@@ -110,25 +70,38 @@ const Admin = ({ language = "hi" }) => {
     photos: null,
   });
 
-  const apiUrl = import.meta.env.VITE_REACT_APP_API_URL;
+  const apiUrl = import.meta.env.VITE_API_URL;
+
+
   useEffect(() => {
-    if (!user) return; 
+    if (!user) return;
 
-    fetch(`${apiUrl}/api/user_visits/${user.id}`)
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchData = async () => {
+      try {
+        const [visitRes, eventsRes] = await Promise.all([
+          fetch(`${apiUrl}/api/user_visits/${user.id}`),
+          fetch(`${apiUrl}/api/events?status=${filter}`)
+        ]);
+
+        if (!visitRes.ok || !eventsRes.ok) throw new Error("API error");
+
+        const visitData = await visitRes.json();
+        const eventsData = await eventsRes.json();
+
         setLastVisit(
-          data.last_visit ? formatDateTime(data.last_visit).date : t.noVisit
+          visitData.last_visit ? formatDateTime(visitData.last_visit).date : t.noVisit
         );
-        setMonthlyCount(data.monthly_count || 0);
-      })
-      .catch((err) => console.error("Error fetching visits:", err));
+        setMonthlyCount(visitData.monthly_count || 0);
+        setEvents(eventsData);
+      } catch (err) {
+        console.error("❌ Error fetching dashboard data:", err);
+      }
+    };
 
-    fetch(`${apiUrl}/api/events?status=${filter}`)
-      .then((res) => res.json())
-      .then((data) => setEvents(data))
-      .catch((err) => console.error("Error fetching events:", err));
-  }, [filter, user, t.noVisit]);
+    fetchData();
+  }, [filter, user]);
+
+
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -231,6 +204,10 @@ const Admin = ({ language = "hi" }) => {
     }
   };
 
+
+
+
+
   const handleShowReport = (event) => {
     fetch(`${apiUrl}/api/event_report/${event.id}`)
       .then((res) => res.json())
@@ -315,12 +292,12 @@ const Admin = ({ language = "hi" }) => {
       draftsArr = draftsArr.map((d) =>
         d.id === loadedDraftId
           ? {
-              ...d,
-              name:
-                form.name || (language === "hi" ? "कोई नाम नहीं" : "No Name"),
-              savedAt: new Date().toISOString(),
-              data: { ...form, photos: photosBase64, video: videoBase64 },
-            }
+            ...d,
+            name:
+              form.name || (language === "hi" ? "कोई नाम नहीं" : "No Name"),
+            savedAt: new Date().toISOString(),
+            data: { ...form, photos: photosBase64, video: videoBase64 },
+          }
           : d
       );
       Swal.fire({
@@ -534,11 +511,10 @@ const Admin = ({ language = "hi" }) => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
               <label
-                className={`flex items-center px-4 py-2 rounded-full border cursor-pointer transition ${
-                  filter === "ongoing"
-                    ? "bg-green-100 border-green-500 text-green-700"
-                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
-                }`}
+                className={`flex items-center px-4 py-2 rounded-full border cursor-pointer transition ${filter === "ongoing"
+                  ? "bg-green-100 border-green-500 text-green-700"
+                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
+                  }`}
               >
                 <input
                   type="radio"
@@ -551,11 +527,10 @@ const Admin = ({ language = "hi" }) => {
               </label>
 
               <label
-                className={`flex items-center px-4 py-2 rounded-full border cursor-pointer transition ${
-                  filter === "previous"
-                    ? "bg-blue-100 border-blue-500 text-blue-700"
-                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
-                }`}
+                className={`flex items-center px-4 py-2 rounded-full border cursor-pointer transition ${filter === "previous"
+                  ? "bg-blue-100 border-blue-500 text-blue-700"
+                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
+                  }`}
               >
                 <input
                   type="radio"
@@ -570,7 +545,7 @@ const Admin = ({ language = "hi" }) => {
 
             <button
               onClick={handleOpenAddModal}
-              className="flex items-center px-4 py-2 rounded-full border bg-purple-100 border-purple-500 text-purple-700 hover:bg-purple-200 transition"
+              className="flex items-center px-4 py-2 border border-blue-700 bg-blue-700 text-white hover:bg-blue-800 transition"
             >
               <PlusCircle className="w-4 h-4 mr-2" />
               <span className="text-sm font-medium">{t.addEvent}</span>
@@ -602,53 +577,55 @@ const Admin = ({ language = "hi" }) => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {events.map((ev, idx) => (
-                  <tr
-                    key={ev.id}
-                    className="hover:bg-gray-50 transition-colors duration-150"
-                  >
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                      {idx + 1}
-                    </td>
+                {[...events]
+                  .sort((a, b) => new Date(b.start_date_time) - new Date(a.start_date_time)) 
+                  .map((ev, idx) => (
+                    <tr
+                      key={ev.id}
+                      className="hover:bg-gray-50 transition-colors duration-150"
+                    >
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                        {idx + 1}
+                      </td>
 
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <button
-                        className="text-sm text-orange-600 hover:text-orange-800 font-medium hover:underline focus:outline-none"
-                        onClick={() => handleShowReport(ev)}
-                      >
-                        {ev.name}
-                      </button>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div className="space-y-1">
-                        <div className="font-medium">
-                          {formatDateTime(ev.start_date_time).date}
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <button
+                          className="text-sm text-orange-600 hover:text-orange-800 font-medium hover:underline focus:outline-none"
+                          onClick={() => handleShowReport(ev)}
+                        >
+                          {ev.name}
+                        </button>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <div className="space-y-1">
+                          <div className="font-medium">
+                            {formatDateTime(ev.start_date_time).date}
+                          </div>
+                          <div className="text-gray-600">
+                            {formatDateTime(ev.start_date_time).time}
+                          </div>
                         </div>
-                        <div className="text-gray-600">
-                          {formatDateTime(ev.start_date_time).time}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <div className="space-y-1">
+                          <div className="font-medium">
+                            {formatDateTime(ev.end_date_time).date}
+                          </div>
+                          <div className="text-gray-600">
+                            {formatDateTime(ev.end_date_time).time}
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div className="space-y-1">
-                        <div className="font-medium">
-                          {formatDateTime(ev.end_date_time).date}
-                        </div>
-                        <div className="text-gray-600">
-                          {formatDateTime(ev.end_date_time).time}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <button
-                        className="bg-gray-800 hover:bg-black text-white text-sm font-medium px-4 py-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                        onClick={() => handleShowReport(ev)}
-                      >
-                        {t.showReport}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <button
+                          className="bg-gray-800 hover:bg-black text-white text-sm font-medium px-4 py-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                          onClick={() => handleShowReport(ev)}
+                        >
+                          {t.showReport}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>

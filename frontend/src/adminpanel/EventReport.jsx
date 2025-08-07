@@ -18,9 +18,9 @@ const TEXT = {
     sn: 'S. No.',
     userName: 'User Name',
     designation: 'Designation',
-    viewed: 'View', // Table heading ke liye
-    seen: 'Seen', // Row value ke liye
-    unseen: 'Unseen', // Row value ke liye
+    viewed: 'View', 
+    seen: 'Seen', 
+    unseen: 'Unseen', 
     updated: 'Updated',
     notUpdated: 'Not Updated',
     action: 'Action',
@@ -39,9 +39,9 @@ const TEXT = {
     sn: 'क्रम संख्या',
     userName: 'उपयोगकर्ता का नाम',
     designation: 'पदनाम',
-    viewed: 'View', // Table heading ke liye
-    seen: 'देखा गया', // Row value ke liye
-    unseen: 'नहीं देखा गया', // Row value ke liye
+    viewed: 'View', 
+    seen: 'देखा गया',
+    unseen: 'नहीं देखा गया',
     updated: 'अपडेट किया गया',
     notUpdated: 'नहीं अपडेट किया गया',
     action: 'कार्रवाई',
@@ -52,7 +52,7 @@ const TEXT = {
 const EventReport = ({ showReport, onClose, handleShowUserDetails, formatDateTime, language = 'hi' }) => {
   const [filter, setFilter] = useState('all');
   const t = TEXT[language] || TEXT.hi;
-  const apiUrl = import.meta.env.VITE_REACT_APP_API_URL;
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   // Aspect ratio state for collage
   const [ratios, setRatios] = React.useState([]);
@@ -112,6 +112,19 @@ const EventReport = ({ showReport, onClose, handleShowUserDetails, formatDateTim
     if (filter === 'notUpdated') return user.updated === 0;
     return true;
   });
+
+
+  const headerHtml = `
+  <div class="event-details-box">
+    <div><b>${t.name}</b> ${showReport.event.name}</div>
+    <div><b>${t.desc}</b> ${showReport.event.description}</div>
+    <div><b>${t.start}</b> ${formatDateTime(showReport.event.start_date_time).date} ${formatDateTime(showReport.event.start_date_time).time}</div>
+    <div><b>${t.end}</b> ${formatDateTime(showReport.event.end_date_time).date} ${formatDateTime(showReport.event.end_date_time).time}</div>
+    <div><b>${t.issue}</b> ${formatDateTime(showReport.event.issue_date).date}</div>
+    <div><b>${t.type}</b> ${showReport.event.type}</div>
+  </div>
+`;
+
 
   return (
     <Modal onClose={onClose}>
@@ -222,7 +235,9 @@ const EventReport = ({ showReport, onClose, handleShowUserDetails, formatDateTim
           <div className='dropdwon pdf-hide'>
             <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px' }}>
               <div>
-                <PdfExportButton targetId="event-report-pdf-section" filename="event-report.pdf" />
+
+                
+                <PdfExportButton targetId="event-report-pdf-section" filename="event-report.pdf" headerHtml={headerHtml} />
               </div>
               <select value={filter} onChange={e => setFilter(e.target.value)} style={{ padding: '4px 8px', borderRadius: '4px' }}>
                 <option value="all">All</option>

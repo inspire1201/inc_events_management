@@ -2,18 +2,13 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const db = require('./config/db'); // Import database connection
-require('./config/cloudinary'); // Initialize Cloudinary configuration
-
+require('./config/cloudinary'); 
 const authRoutes = require('./routes/authRoutes');
-const eventRoutes = require('./routes/eventRoutes');
+const eventRoutes = require('./routes/eventRoutes'); 
 
 const app = express();
 
-
-
 const allowedOrigins = [
-  'https://inceventsmanagement-production.up.railway.app',
   'http://localhost:5173',
 ];
 
@@ -22,15 +17,15 @@ const corsOptions = {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.warn(`❌ CORS blocked origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
+  optionsSuccessStatus: 200, 
 };
 
 app.use(cors(corsOptions));
-
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
