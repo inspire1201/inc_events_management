@@ -11,10 +11,19 @@ const toMySQLDateTime = (date) => {
 
 const uploadToCloudinary = (file, folder) =>
   new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream({ folder }, (err, result) => {
-      if (err) return reject(err);
-      resolve(result.secure_url);
-    });
+    let resourceType = 'image';
+    if (file.mimetype.startsWith('video/')) {
+      resourceType = 'video';
+    }
+
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: resourceType },
+      (err, result) => {
+        if (err) return reject(err);
+        resolve(result.secure_url);
+      }
+    );
+
     Readable.from(file.buffer).pipe(stream);
   });
 
@@ -176,7 +185,7 @@ exports.addEvent = async (req, res) => {
 
     // 🎯 If user is "All Jila Addhyaksh", assign this event to all non-admin users
     if (user === "All Jila Addhyaksh") {
-      const [users] = await db.query('SELECT ID FROM users WHERE Designation != "Admin"');
+      const [users] = await db.query('SELECT ID FROM users_ev WHERE Designation != "Admin"');
       if (users.length) {
         const values = users.map(u => [event_id, u.ID]);
         await db.query('INSERT INTO event_users (event_id, user_id) VALUES ?', [values]);
@@ -198,7 +207,7 @@ exports.getEventReport = async (req, res) => {
       `SELECT u.ID, u.User_Name as name, u.Designation as designation,
               (SELECT COUNT(*) FROM event_views ev WHERE ev.user_id = u.ID AND ev.event_id = ?) as viewed,
               (SELECT COUNT(*) FROM event_updates eu WHERE eu.user_id = u.ID AND eu.event_id = ?) as updated
-         FROM users u
+         FROM users_ev u
          JOIN event_users eu ON u.ID = eu.user_id
         WHERE eu.event_id = ? AND u.Designation != "Admin"`,
       [event_id, event_id, event_id]

@@ -18,7 +18,7 @@ exports.login = async (req, res) => {
   }
 
   try {
-    const [results] = await db.query('SELECT * FROM users WHERE Pin = ?', [pin]);
+    const [results] = await db.query('SELECT * FROM users_ev WHERE Pin = ?', [pin]);
     console.log("✅ Query result:", results);
 
     if (results.length === 0) {
