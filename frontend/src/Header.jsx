@@ -37,28 +37,34 @@ function Header({ language, setLanguage }) {
     },
   };
 
-  const handleLogout = () => {
-    Swal.fire({
-      title: texts[language].logoutConfirmTitle,
-      text: texts[language].logoutConfirmText,
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: texts[language].confirm,
-      cancelButtonText: texts[language].cancel,
-    }).then((result) => {
-      if (result.isConfirmed) {
-        localStorage.removeItem("role");
-        navigate("/");
-        Swal.fire(
-          "Logged out!",
-          "You have been successfully logged out.",
-          "success"
-        );
-      }
-    });
-  };
+const handleLogout = () => {
+  Swal.fire({
+    title: texts[language].logoutConfirmTitle,
+    text: texts[language].logoutConfirmText,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: texts[language].confirm,
+    cancelButtonText: texts[language].cancel,
+  }).then((result) => {
+    if (result.isConfirmed) {
+      localStorage.removeItem("role");
+      localStorage.removeItem("appStep");
+      localStorage.removeItem("language");
+      
+      navigate("/");
+
+      Swal.fire(
+        "Logged out!",
+        "You have been successfully logged out.",
+        "success"
+      );
+
+      window.location.reload();
+    }
+  });
+};
 
   const handleLanguageToggle = () => {
     setLanguage(language === "en" ? "hi" : "en");
@@ -73,12 +79,10 @@ function Header({ language, setLanguage }) {
   return (
     <>
       <header className="w-full flex justify-between items-center bg-white px-4 lg:px-6 py-4 shadow-lg border-b-2 border-gray-200 fixed top-0 left-0 right-0 z-50">
-        {/* Logo */}
         <div className="flex items-center gap-3">
           <img src={logo} alt="logo" className="h-8 lg:h-10 w-auto" />
         </div>
 
-        {/* Desktop Navigation and Actions */}
         <div className="hidden md:!flex items-center justify-between flex-1 ml-8">
           <nav className="flex gap-6 xl:gap-8 items-center">
             <Link
@@ -126,7 +130,6 @@ function Header({ language, setLanguage }) {
           </div>
         </div>
 
-        {/* Mobile Menu Button */}
         <button
           onClick={toggleMobileMenu}
           className="md:hidden p-2 text-gray-800 hover:text-black transition-colors duration-200"
@@ -139,7 +142,6 @@ function Header({ language, setLanguage }) {
         </button>
       </header>
 
-      {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div
           className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -219,7 +221,6 @@ function Header({ language, setLanguage }) {
         </div>
       </div>
 
-      {/* Welcome Message */}
       <div className="mt-20 lg:mt-24 text-center px-4">
         {userName && (
           <p className="text-lg lg:text-xl font-semibold text-gray-700">

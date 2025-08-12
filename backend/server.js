@@ -9,13 +9,13 @@ const eventRoutes = require('./routes/eventRoutes');
 
 const app = express();
 
+
 const allowedOrigins = [
   'http://localhost:5173',
   'http://44.197.21.241',
   'http://44.197.21.241:3000',
   'https://44.197.21.241',
 ];
-
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -31,8 +31,13 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+  <<<<<<< HEAD
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+  =======
+  app.use(express.json({ limit: '500mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '500mb' }));
+  >>>>>>> 574675f (dd)
 
 // Static uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

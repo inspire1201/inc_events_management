@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import FirstPage from "./FirstPage";
 import LanguagePage from "./LanguagePage";
 import Login from "./LoginPage/Login";
@@ -7,20 +8,41 @@ import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import UserPanel from "./userpanel/userpanel";
 import Header from "./Header";
 import Home from "./Home";
-import AllUsersSummary from "./userpanel/AllUsersSummary";
-import UserVisits from "./userpanel/UserVisits";
 
 function AppContent() {
-  const [step, setStep] = useState(1); 
-  const [language, setLanguage] = useState("en"); 
   const location = useLocation();
 
+  useEffect(() => {
+  const SESSION_KEY = "app_session_active";
+
+  if (!sessionStorage.getItem(SESSION_KEY)) {
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
+  }
+
+  sessionStorage.setItem(SESSION_KEY, "true");
+}, []);
+
+
+  const [step, setStep] = useState(() => {
+    const savedStep = localStorage.getItem("appStep");
+    return savedStep ? Number(savedStep) : 1;
+  });
+
+  const [language, setLanguage] = useState(() => {
+    return localStorage.getItem("language") || "en";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("appStep", step);
+  }, [step]);
+
+  useEffect(() => {
+    localStorage.setItem("language", language);
+  }, [language]);
+
   if (step === 1) {
-    return (
-      <FirstPage
-        onStart={() => setStep(2)}
-      />
-    );
+    return <FirstPage onStart={() => setStep(2)} />;
   }
 
   if (step === 2) {
