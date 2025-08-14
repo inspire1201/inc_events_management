@@ -110,7 +110,7 @@ const AddEventForm = ({
             onChange={handleFormChange}
             required
             rows={2}
-            className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-black rounded-md bg-white text-black resize-none"
+            className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-black rounded-md bg-white text-black resize-y"
           />
         </div>
       </div>
