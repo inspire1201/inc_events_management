@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+const apiUrl = import.meta.env.VITE_API_URL
 
 const UserVisits = () => {
     const { user } = useAuth();
@@ -11,15 +12,15 @@ const UserVisits = () => {
 
     useEffect(() => {
         if (!user) return;
-        
+
         const fetchUserData = async () => {
             try {
-                // Fetch last visit
-                const lastVisitRes = await axios.get(`http://localhost:3000/api/last-visit/${user.userId}`);
+                http://44.197.21.241:5000
+                const lastVisitRes = await axios.get(`${apiUrl}/api/last-visit/${user.userId}`);
                 setLastVisit(lastVisitRes.data.lastVisit);
-                
+
                 // Fetch monthly visits
-                const monthlyVisitsRes = await axios.get(`http://localhost:3000/api/visits-this-month/${user.userId}`);
+                const monthlyVisitsRes = await axios.get(`${apiUrl}/api/visits-this-month/${user.userId}`);
                 setVisitsThisMonth(monthlyVisitsRes.data.visitsThisMonth);
 
             } catch (err) {

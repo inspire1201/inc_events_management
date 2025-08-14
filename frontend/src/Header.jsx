@@ -4,13 +4,13 @@ import Swal from "sweetalert2";
 import logo from "./assets/download.png";
 import vector from "./assets/Vector.svg";
 import { Home, UserSquare, ShieldCheck, Menu, X } from "lucide-react";
+import { useLanguage } from "./context/LanguageContext";
 
-function Header({ language, setLanguage }) {
+function Header() {
+  const { language, handleLanguageToggle } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
-  const user = JSON.parse(localStorage.getItem("user"));
-  const userName = user ? user.username : "";
 
   const texts = {
     en: {
@@ -28,7 +28,7 @@ function Header({ language, setLanguage }) {
       home: "होम",
       userPanel: "यूज़र पैनल",
       adminPanel: "एडमिन पैनल",
-      logout: "लॉगआउट",                                                                                                  
+      logout: "लॉगआउट",
       switch: "अंग्रेज़ी में बदलें",
       logoutConfirmTitle: "क्या आप सुनिश्चित हैं?",
       logoutConfirmText: "क्या आप लॉगआउट करना चाहते हैं?",
@@ -37,37 +37,33 @@ function Header({ language, setLanguage }) {
     },
   };
 
-const handleLogout = () => {
-  Swal.fire({
-    title: texts[language].logoutConfirmTitle,
-    text: texts[language].logoutConfirmText,
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: texts[language].confirm,
-    cancelButtonText: texts[language].cancel,
-  }).then((result) => {
-    if (result.isConfirmed) {
-      localStorage.removeItem("role");
-      localStorage.removeItem("appStep");
-      localStorage.removeItem("language");
-      
-      navigate("/");
+  const handleLogout = () => {
+    Swal.fire({
+      title: texts[language].logoutConfirmTitle,
+      text: texts[language].logoutConfirmText,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: texts[language].confirm,
+      cancelButtonText: texts[language].cancel,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        localStorage.removeItem("role");
+        localStorage.removeItem("appStep");
+        localStorage.removeItem("language");
 
-      Swal.fire(
-        "Logged out!",
-        "You have been successfully logged out.",
-        "success"
-      );
+        navigate("/");
 
-      window.location.reload();
-    }
-  });
-};
+        Swal.fire(
+          "Logged out!",
+          "You have been successfully logged out.",
+          "success"
+        );
 
-  const handleLanguageToggle = () => {
-    setLanguage(language === "en" ? "hi" : "en");
+        window.location.reload();
+      }
+    });
   };
 
   const toggleMobileMenu = () => {
@@ -78,7 +74,7 @@ const handleLogout = () => {
 
   return (
     <>
-      <header className="w-full flex justify-between items-center bg-white px-4 lg:px-6 py-4 shadow-lg border-b-2 border-gray-200 fixed top-0 left-0 right-0 z-50">
+      <header className="w-full flex justify-between items-center bg-white px-4 lg:px-6 py-4 shadow-lg border-b-2 border-gray-200 sticky top-0  z-50">
         <div className="flex items-center gap-3">
           <img src={logo} alt="logo" className="h-8 lg:h-10 w-auto" />
         </div>
@@ -151,9 +147,8 @@ const handleLogout = () => {
 
       {/* Mobile Menu */}
       <div
-        className={`md:hidden fixed top-0 right-0 h-full w-80 bg-white shadow-2xl border-l-2 border-gray-200 z-50 transform transition-transform duration-300 ${
-          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`md:hidden fixed top-0 right-0 h-full w-80 bg-white shadow-2xl border-l-2 border-gray-200 z-50 transform transition-transform duration-300 ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <div className="p-6">
           <div className="flex justify-between items-center mb-8">
@@ -221,15 +216,6 @@ const handleLogout = () => {
         </div>
       </div>
 
-      <div className="mt-20 lg:mt-24 text-center px-4">
-        {userName && (
-          <p className="text-lg lg:text-xl font-semibold text-gray-700">
-            {language === "hi"
-              ? `स्वागत है - ${userName}`
-              : `Welcome - ${userName}`}
-          </p>
-        )}
-      </div>
     </>
   );
 }

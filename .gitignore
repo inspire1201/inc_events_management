@@ -1,12 +1,4 @@
-# <<<<<<< HEAD
-# # your local version
-# node_modules/
-# .env
-# =======
-# # remote version
-# .env
-# node_modules/
-# backend/
-# >>>>>>> origin/main
+.gitignore
+dleted
 
 

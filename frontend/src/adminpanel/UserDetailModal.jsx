@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import Modal from './Modal';
 import UserDetailPdf from './UserDetailPdf';
 import ReactDOMServer from 'react-dom/server';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Swal from 'sweetalert2';
+import { useLanguage } from '../context/LanguageContext';
 
 const TEXT = {
   en: {
@@ -51,7 +52,8 @@ const TEXT = {
   },
 };
 
-const UserDetailModal = ({ userDetailModal, onClose, formatDateTime, language = 'hi' }) => {
+const UserDetailModal = ({ userDetailModal, onClose, formatDateTime }) => {
+  const { language } = useLanguage();
   const t = TEXT[language] || TEXT.hi;
   const API_URL = import.meta.env.VITE_API_URL;
 

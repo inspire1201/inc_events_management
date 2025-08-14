@@ -1,22 +1,11 @@
 import React from 'react';
 
 const Modal = ({ children, onClose }) => (
-  <div
-    className="fixed inset-0 bg-black/35 backdrop-blur-sm flex items-center justify-center z-[1000]"
-    onClick={onClose}
-  >
-    <div
-      className="bg-white p-8 pt-8 rounded-2xl w-[90vw] min-w-[320px] max-w-[500px] max-h-[80vh] overflow-y-auto shadow-[0_8px_32px_rgba(0,0,0,0.18),_0_1.5px_6px_rgba(0,0,0,0.10)] relative transition-shadow scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <button
-        className="absolute top-3 right-4 text-2xl font-bold text-gray-500 hover:text-red-600 transition-colors z-10 p-2"
-        onClick={onClose}
-        aria-label="Close Modal"
-      >
-        ×
-      </button>
-      {children}
+    <div className="fixed inset-0 w-screen h-screen bg-black/30 flex items-center justify-center z-[1000] p-2 sm:p-4">
+    <div className="bg-white p-0 rounded-lg w-full h-full sm:w-full sm:h-full md:w-full md:h-full lg:w-full lg:h-full xl:w-full xl:h-full relative shadow-[0_2px_16px_rgba(0,0,0,0.15)] max-w-none">
+      <div className="h-full overflow-y-auto p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12 rounded-lg relative">
+        {children}
+      </div>
     </div>
   </div>
 );

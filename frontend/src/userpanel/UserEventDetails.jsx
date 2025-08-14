@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import './UserEventDetails.css';
+import { useLanguage } from '../context/LanguageContext';
 
 const TEXT = {
   en: {
@@ -26,57 +27,58 @@ const TEXT = {
   },
 };
 
-const UserEventDetails = ({ event, formatDateTime, language = 'hi' }) => {
+const UserEventDetails = ({ event, formatDateTime }) => {
+  const { language } = useLanguage();
   const t = TEXT[language] || TEXT.hi;
-   const apiUrl = import.meta.env.VITE_API_URL
+  const apiUrl = import.meta.env.VITE_API_URL
   if (!event) return null;
   return (
     <>
-    <div className='event-details'>
-      <div><h2 className="userpanel-modal-title">{t.title}</h2></div>
-      <div><b>{t.name}</b> {event.name}</div>
-      <div><b>{t.desc}</b> {event.description}</div>
-      <div><b>{t.start}</b> {formatDateTime(event.start_date_time).date} {formatDateTime(event.start_date_time).time}</div>
-      <div><b>{t.end}</b> {formatDateTime(event.end_date_time).date} {formatDateTime(event.end_date_time).time}</div>
-      <div><b>{t.issue}</b> {formatDateTime(event.issue_date).date}</div>
-      <div><b>{t.location}</b> {event.location}</div>
-      {/* <div><b>{t.level}</b> {event.level}</div> */}
-      <div><b>{t.type}</b> {event.type}</div>
-      <div className="event-media-section">
-        {/* Photos */}
-        {event.photos && (() => {
-          let photosArr = [];
-          try {
-            photosArr = Array.isArray(event.photos)
-              ? event.photos
-              : JSON.parse(event.photos);
-          } catch {
-            photosArr = [];
-          }
-          return photosArr.length > 0 ? (
-            <div className="event-photos-row">
-              {photosArr.map((photo, idx) => (
-                <img
-                  key={idx}
-                  src={photo.startsWith('http') ? photo : `${apiUrl}${photo}`}
-                  alt="Photo"
-                  className="event-photo-img"
-                />
-              ))}
+      <div className='event-details'>
+        <div><h2 className="userpanel-modal-title">{t.title}</h2></div>
+        <div><b>{t.name}</b> {event.name}</div>
+        <div><b>{t.desc}</b> {event.description}</div>
+        <div><b>{t.start}</b> {formatDateTime(event.start_date_time).date} {formatDateTime(event.start_date_time).time}</div>
+        <div><b>{t.end}</b> {formatDateTime(event.end_date_time).date} {formatDateTime(event.end_date_time).time}</div>
+        <div><b>{t.issue}</b> {formatDateTime(event.issue_date).date}</div>
+        <div><b>{t.location}</b> {event.location}</div>
+        {/* <div><b>{t.level}</b> {event.level}</div> */}
+        <div><b>{t.type}</b> {event.type}</div>
+        <div className="event-media-section">
+          {/* Photos */}
+          {event.photos && (() => {
+            let photosArr = [];
+            try {
+              photosArr = Array.isArray(event.photos)
+                ? event.photos
+                : JSON.parse(event.photos);
+            } catch {
+              photosArr = [];
+            }
+            return photosArr.length > 0 ? (
+              <div className="event-photos-row">
+                {photosArr.map((photo, idx) => (
+                  <img
+                    key={idx}
+                    src={photo.startsWith('http') ? photo : `${apiUrl}${photo}`}
+                    alt="Photo"
+                    className="event-photo-img"
+                  />
+                ))}
+              </div>
+            ) : null;
+          })()}
+
+          {event.video && (
+            <div className="event-video-wrapper">
+              <video
+                controls
+                src={`${apiUrl}${event.video}`}
+                className="event-video"
+              />
             </div>
-          ) : null;
-        })()}
-      
-        {event.video && (
-          <div className="event-video-wrapper">
-            <video
-              controls
-              src={`${apiUrl}${event.video}`}
-              className="event-video"
-            />
-          </div>
-        )}
-      </div>
+          )}
+        </div>
       </div>
     </>
   );

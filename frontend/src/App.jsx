@@ -8,20 +8,23 @@ import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import UserPanel from "./userpanel/userpanel";
 import Header from "./Header";
 import Home from "./Home";
+import { useLanguage } from "./context/LanguageContext";
 
 function AppContent() {
   const location = useLocation();
+  const { language,setLanguage } = useLanguage();
+
 
   useEffect(() => {
-  const SESSION_KEY = "app_session_active";
+    const SESSION_KEY = "app_session_active";
 
-  if (!sessionStorage.getItem(SESSION_KEY)) {
-    localStorage.removeItem("user");
-    localStorage.removeItem("role");
-  }
+    if (!sessionStorage.getItem(SESSION_KEY)) {
+      localStorage.removeItem("user");
+      localStorage.removeItem("role");
+    }
 
-  sessionStorage.setItem(SESSION_KEY, "true");
-}, []);
+    sessionStorage.setItem(SESSION_KEY, "true");
+  }, []);
 
 
   const [step, setStep] = useState(() => {
@@ -29,17 +32,13 @@ function AppContent() {
     return savedStep ? Number(savedStep) : 1;
   });
 
-  const [language, setLanguage] = useState(() => {
-    return localStorage.getItem("language") || "en";
-  });
+
 
   useEffect(() => {
     localStorage.setItem("appStep", step);
   }, [step]);
 
-  useEffect(() => {
-    localStorage.setItem("language", language);
-  }, [language]);
+
 
   if (step === 1) {
     return <FirstPage onStart={() => setStep(2)} />;
@@ -63,11 +62,11 @@ function AppContent() {
 
   return (
     <>
-      <Header language={language} setLanguage={setLanguage} />
+      <Header />
       <Routes>
         <Route path="/home" element={<Home />} />
-        <Route path="/admin" element={<Admin language={language} />} />
-        <Route path="/userpanel" element={<UserPanel language={language} />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/userpanel" element={<UserPanel />} />
       </Routes>
     </>
   );

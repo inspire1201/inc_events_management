@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import "./login.css";
+import { useLanguage } from "../context/LanguageContext";
 
 const TEXT = {
   en: {
@@ -30,7 +31,8 @@ const TEXT = {
   },
 };
 
-function Login({ language = "hi" }) {
+function Login() {
+  const { language } = useLanguage();
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -49,13 +51,13 @@ function Login({ language = "hi" }) {
       return;
     }
 
-   
-    
 
-    
+
+
+
     setIsLoading(true);
-    
-    
+
+
     Swal.fire({
       title: 'Logging in...',
       text: 'Please wait while we verify your credentials',
@@ -67,7 +69,7 @@ function Login({ language = "hi" }) {
       }
     });
 
-  const apiUrl = import.meta.env.VITE_API_URL
+    const apiUrl = import.meta.env.VITE_API_URL
     try {
       const response = await fetch(`${apiUrl}/api/login`, {
         method: "POST",
@@ -80,7 +82,7 @@ function Login({ language = "hi" }) {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("user", JSON.stringify(data));   
+        localStorage.setItem("user", JSON.stringify(data));
         if (data.designation === "Admin") {
           localStorage.setItem("role", "admin");
           Swal.fire({

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+const apiUrl = import.meta.env.VITE_API_URL
+
 
 const AllUsersSummary = () => {
     const [usersSummary, setUsersSummary] = useState([]);
@@ -9,7 +11,7 @@ const AllUsersSummary = () => {
     useEffect(() => {
         const fetchSummary = async () => {
             try {
-                const response = await axios.get('http://localhost:3000/api/all-users-summary');
+                const response = await axios.get(`${apiUrl}/api/all-users-summary`);
                 setUsersSummary(response.data);
             } catch (err) {
                 setError('Failed to fetch users summary.');

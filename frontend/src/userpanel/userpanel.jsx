@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { CalendarDays, BarChart3, Clock3, History } from "lucide-react";
 import Modal from "./Modal";
@@ -6,6 +6,7 @@ import UserEventDetails from "./UserEventDetails";
 import UserEventUpdateForm from "./UserEventUpdateForm";
 import Swal from "sweetalert2";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 
 const TEXT = {
   en: {
@@ -65,9 +66,9 @@ const formatDateTime = (dateString) => {
   };
 };
 
-const UserPanel = ({ language = "hi" }) => {
+const UserPanel = () => {
+  const { language } = useLanguage();
   const { showReport, setShowReport } = useAuth();
-
   const t = TEXT[language] || TEXT.hi;
   const [eventType, setEventType] = useState("ongoing");
   const [modalType, setModalType] = useState(null);
@@ -93,27 +94,6 @@ const UserPanel = ({ language = "hi" }) => {
 
   const apiUrl = import.meta.env.VITE_API_URL;
 
-  // useEffect(() => {
-  //   fetch(`${apiUrl}/api/user_visits/${user.id}`)
-  //   alert()
-  //     .then((res) => res.json())
-  //     .then((resData) => {
-  //       setLastVisit(
-  //         resData.last_visit
-  //           ? formatDateTime(resData.last_visit).date
-  //           : t.noVisit
-  //       );
-  //       setMonthlyCount(resData.monthly_count || 0);
-  //     })
-  //     .catch((err) => console.error("Error fetching visits:", err));
-
-  //   fetch(`${apiUrl}/api/events?status=${eventType}&user_id=${user.id}`)
-  //     .then((res) => res.json())
-  //     .then((data) => {
-  //       setEvents(data);
-  //     })
-  //     .catch((err) => console.error("Error fetching events:", err));
-  // }, [eventType, user.id, t.noVisit]);
   useEffect(() => {
     if (!user?.id) {
       console.log("❌ No user ID found!");
@@ -126,13 +106,13 @@ const UserPanel = ({ language = "hi" }) => {
         const timeout = setTimeout(() => {
           controller.abort();
           console.error("⏱️ Visit API fetch timed out!");
-        }, 5000); // 5 seconds timeout
+        }, 5000); 
 
         const visitRes = await fetch(`${apiUrl}/api/user_visits/${user.id}`, {
           signal: controller.signal,
         });
 
-        clearTimeout(timeout); // Clear timeout on success
+        clearTimeout(timeout);
 
         if (!visitRes.ok) {
           console.error("❌ Visit API responded with error:", visitRes.status);
@@ -148,7 +128,6 @@ const UserPanel = ({ language = "hi" }) => {
         );
         setMonthlyCount(visitData.monthly_count || 0);
 
-        // Event fetch
         const eventRes = await fetch(
           `${apiUrl}/api/events?status=${eventType}&user_id=${user.id}`
         );
@@ -164,19 +143,6 @@ const UserPanel = ({ language = "hi" }) => {
     fetchData();
   }, [eventType, user.id, t.noVisit]);
 
-  // const handleShowDetails = (event) => {
-  //   setSelectedEvent(event);
-  //   setModalType("details");
-
-  //   fetch(`${apiUrl}/api/event_view`, {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({ event_id: event.id, user_id: user.id }),
-  //   })
-  //     .then(() => console.log("Event marked as viewed"))
-  //     .catch((err) => console.error("Error marking view:", err));
-  // };
-
   const handleShowDetails = (event) => {
     setSelectedEvent(event);
     setModalType("details");
@@ -191,7 +157,7 @@ const UserPanel = ({ language = "hi" }) => {
       })
       .then((res) => res.json())
       .then((updatedReport) => {
-        setShowReport(updatedReport); // ← this updates the prop in EventReport
+        setShowReport(updatedReport); 
       })
       .catch((err) => console.error("Error updating view/report:", err));
   };
@@ -208,8 +174,8 @@ const UserPanel = ({ language = "hi" }) => {
       if (res.ok) {
         const data = await res.json();
         setUpdateForm({
-          ...event, // fallback: event object se details
-          ...data, // backend data overwrite karega
+          ...event, 
+          ...data, 
           photos: data.photos
             ? typeof data.photos === "string"
               ? JSON.parse(data.photos)
@@ -337,7 +303,6 @@ const UserPanel = ({ language = "hi" }) => {
       );
     }
 
-    // Show loader
     Swal.fire({
       title: language === "hi" ? "कृपया प्रतीक्षा करें..." : "Please wait...",
       allowOutsideClick: false,
@@ -361,9 +326,9 @@ const UserPanel = ({ language = "hi" }) => {
           showConfirmButton: false,
           timer: 1500,
         });
+
         setModalType(null);
 
-        // Update the event in the events list to set userHasUpdated: true
         setEvents((prevEvents) =>
           prevEvents.map((ev) =>
             ev.id === selectedEvent.id ? { ...ev, userHasUpdated: true } : ev
@@ -465,7 +430,6 @@ const UserPanel = ({ language = "hi" }) => {
             </label>
           </div>
         </div>
-        {/* Warning Message for Previous Events */}
         {eventType === "previous" && (
           <div className="bg-orange-50 border border-orange-200 p-4 mb-6">
             <div className="flex items-center">
@@ -520,8 +484,8 @@ const UserPanel = ({ language = "hi" }) => {
                     </td>
                   </tr>
                 ) : (
-                  [...events] 
-                    .sort((a, b) => new Date(b.start_date_time) - new Date(a.start_date_time)) 
+                  [...events]
+                    .sort((a, b) => new Date(b.start_date_time) - new Date(a.start_date_time))
                     .map((event, idx) => (
                       < tr
                         key={event.id}
@@ -563,7 +527,6 @@ const UserPanel = ({ language = "hi" }) => {
             </table>
           </div>
         </div>
-        {/* Modals */}
         {modalType === "details" && selectedEvent && (
           <Modal onClose={() => setModalType(null)}>
             <UserEventDetails
@@ -577,6 +540,7 @@ const UserPanel = ({ language = "hi" }) => {
         {modalType === "update" && updateForm && (
           <Modal onClose={() => setModalType(null)}>
             <UserEventUpdateForm
+              onClose={() => setModalType(null)}
               updateForm={updateForm}
               setUpdateForm={setUpdateForm}
               handleFormChange={handleFormChange}

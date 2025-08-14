@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Swal from "sweetalert2";
 import Modal from "./Modal.jsx";
 import AddEventForm from "./AddEventForm.jsx";
@@ -9,6 +9,7 @@ import { Clock3, History, PlusCircle } from "lucide-react";
 import { ADMINTEXT } from "../Data/Langauge.js";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 
 const eventTypes = ["धरना", "बैठक", "बंद", "रैली", "सभा", "गायपान"];
@@ -29,9 +30,10 @@ const formatDateTime = (dateString) => {
   };
 };
 
-const Admin = ({ language = "hi" }) => {
+const Admin = () => {
+  const { language } = useLanguage();
+  const [isAddingEvent, setIsAddingEvent] = useState(false);
   const { showReport, setShowReport } = useAuth();
-
   const t = ADMINTEXT[language] || ADMINTEXT.hi;
   const [showAddModal, setShowAddModal] = useState(false);
   const [filter, setFilter] = useState("ongoing");
@@ -136,17 +138,6 @@ const Admin = ({ language = "hi" }) => {
   const handleAddEvent = async (e) => {
     e.preventDefault();
 
-    Swal.fire({
-      title: t.addingEvent,
-      text: t.pleaseWait,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      showConfirmButton: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
-
     const formData = new FormData();
     Object.entries(form).forEach(([key, value]) => {
       if (key === "photos" && value) {
@@ -155,6 +146,7 @@ const Admin = ({ language = "hi" }) => {
         formData.append(key, value);
       }
     });
+    setIsAddingEvent(true);
 
     try {
       const response = await fetch(`${apiUrl}/api/event_add`, {
@@ -201,6 +193,9 @@ const Admin = ({ language = "hi" }) => {
         text: t.error,
         confirmButtonText: "OK",
       });
+    }
+    finally {
+      setIsAddingEvent(false);
     }
   };
 
@@ -423,263 +418,281 @@ const Admin = ({ language = "hi" }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header Info Section */}
-        <div className="bg-white shadow-sm border border-gray-200 p-4 lg:p-6 mb-6 relative">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium text-gray-600">
-                {t.lastVisit}
-              </span>
-              <span className="text-sm text-gray-900 font-semibold">
-                {lastVisit}
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium text-gray-600">
-                {t.monthlyCount}
-              </span>
-              <span className="text-sm text-gray-900 font-semibold">
-                {monthlyCount}
-              </span>
+    <>
+
+      <div className="min-h-screen bg-gray-50 p-4 lg:p-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Header Info Section */}
+          <div className="bg-white shadow-sm border border-gray-200 p-4 lg:p-6 mb-6 relative">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-gray-600">
+                  {t.lastVisit}
+                </span>
+                <span className="text-sm text-gray-900 font-semibold">
+                  {lastVisit}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-gray-600">
+                  {t.monthlyCount}
+                </span>
+                <span className="text-sm text-gray-900 font-semibold">
+                  {monthlyCount}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Draft Button Section */}
-        <div className="flex justify-end mb-6 relative">
-          <button
-            onClick={() => setShowDrafts((v) => !v)}
-            className="bg-orange-500 hover:bg-orange-600 text-white font-medium px-6 py-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-          >
-            {language === "hi" ? "ड्राफ्ट" : "Draft"}
-          </button>
-          {showDrafts && (
-            <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 shadow-lg min-w-80 z-20 p-4">
-              <div className="font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-100">
-                {language === "hi" ? "ड्राफ्ट्स" : "Drafts"}
-              </div>
-              {drafts.length === 0 ? (
-                <div className="text-gray-500 text-sm py-4 text-center">
-                  {language === "hi" ? "कोई ड्राफ्ट नहीं" : "No drafts"}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {drafts
-                    .slice()
-                    .reverse()
-                    .map((d) => (
-                      <div
-                        key={d.id}
-                        className="flex items-center justify-between p-3 hover:bg-gray-50 border border-gray-100"
-                      >
-                        <div className="flex-1 min-w-0 mr-4">
-                          <div className="font-medium text-gray-900 truncate">
-                            {d.name}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            {new Date(d.savedAt).toLocaleString(
-                              language === "hi" ? "hi-IN" : "en-US"
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex space-x-2">
-                          <button
-                            className="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 transition-colors duration-200"
-                            onClick={() => handleLoadDraft(d.id)}
-                          >
-                            {language === "hi" ? "लोड" : "Load"}
-                          </button>
-                          <button
-                            className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 transition-colors duration-200"
-                            onClick={() => removeDraft(d.id)}
-                          >
-                            {language === "hi" ? "हटाएं" : "Delete"}
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Filter and Add Button Row */}
-        <div className="bg-white shadow-sm border border-gray-200 p-4 lg:p-6 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-              <label
-                className={`flex items-center px-4 py-2 rounded-full border cursor-pointer transition ${filter === "ongoing"
-                  ? "bg-green-100 border-green-500 text-green-700"
-                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
-                  }`}
-              >
-                <input
-                  type="radio"
-                  checked={filter === "ongoing"}
-                  onChange={() => setFilter("ongoing")}
-                  className="hidden"
-                />
-                <Clock3 className="w-4 h-4 mr-2" />
-                <span className="text-sm font-medium">{t.ongoing}</span>
-              </label>
-
-              <label
-                className={`flex items-center px-4 py-2 rounded-full border cursor-pointer transition ${filter === "previous"
-                  ? "bg-blue-100 border-blue-500 text-blue-700"
-                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
-                  }`}
-              >
-                <input
-                  type="radio"
-                  checked={filter === "previous"}
-                  onChange={() => setFilter("previous")}
-                  className="hidden"
-                />
-                <History className="w-4 h-4 mr-2" />
-                <span className="text-sm font-medium">{t.previous}</span>
-              </label>
-            </div>
-
+          {/* Draft Button Section */}
+          <div className="flex justify-end mb-6 relative">
             <button
-              onClick={handleOpenAddModal}
-              className="flex items-center px-4 py-2 border border-blue-700 bg-blue-700 text-white hover:bg-blue-800 transition"
+              onClick={() => setShowDrafts((v) => !v)}
+              className="bg-orange-500 hover:bg-orange-600 text-white font-medium px-6 py-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
             >
-              <PlusCircle className="w-4 h-4 mr-2" />
-              <span className="text-sm font-medium">{t.addEvent}</span>
+              {language === "hi" ? "ड्राफ्ट" : "Draft"}
             </button>
-          </div>
-        </div>
-
-        {/* Events Table */}
-        <div className="bg-white shadow-sm border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    {t.sn}
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    {t.eventDetails}
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    {t.startDate}
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    {t.endDate}
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    {t.action}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {[...events]
-                  .sort((a, b) => new Date(b.start_date_time) - new Date(a.start_date_time)) 
-                  .map((ev, idx) => (
-                    <tr
-                      key={ev.id}
-                      className="hover:bg-gray-50 transition-colors duration-150"
-                    >
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                        {idx + 1}
-                      </td>
-
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <button
-                          className="text-sm text-orange-600 hover:text-orange-800 font-medium hover:underline focus:outline-none"
-                          onClick={() => handleShowReport(ev)}
+            {showDrafts && (
+              <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 shadow-lg min-w-80 z-20 p-4">
+                <div className="font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-100">
+                  {language === "hi" ? "ड्राफ्ट्स" : "Drafts"}
+                </div>
+                {drafts.length === 0 ? (
+                  <div className="text-gray-500 text-sm py-4 text-center">
+                    {language === "hi" ? "कोई ड्राफ्ट नहीं" : "No drafts"}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {drafts
+                      .slice()
+                      .reverse()
+                      .map((d) => (
+                        <div
+                          key={d.id}
+                          className="flex items-center justify-between p-3 hover:bg-gray-50 border border-gray-100"
                         >
-                          {ev.name}
-                        </button>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <div className="space-y-1">
-                          <div className="font-medium">
-                            {formatDateTime(ev.start_date_time).date}
+                          <div className="flex-1 min-w-0 mr-4">
+                            <div className="font-medium text-gray-900 truncate">
+                              {d.name}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              {new Date(d.savedAt).toLocaleString(
+                                language === "hi" ? "hi-IN" : "en-US"
+                              )}
+                            </div>
                           </div>
-                          <div className="text-gray-600">
-                            {formatDateTime(ev.start_date_time).time}
+                          <div className="flex space-x-2">
+                            <button
+                              className="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 transition-colors duration-200"
+                              onClick={() => handleLoadDraft(d.id)}
+                            >
+                              {language === "hi" ? "लोड" : "Load"}
+                            </button>
+                            <button
+                              className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 transition-colors duration-200"
+                              onClick={() => removeDraft(d.id)}
+                            >
+                              {language === "hi" ? "हटाएं" : "Delete"}
+                            </button>
                           </div>
                         </div>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <div className="space-y-1">
-                          <div className="font-medium">
-                            {formatDateTime(ev.end_date_time).date}
-                          </div>
-                          <div className="text-gray-600">
-                            {formatDateTime(ev.end_date_time).time}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <button
-                          className="bg-gray-800 hover:bg-black text-white text-sm font-medium px-4 py-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                          onClick={() => handleShowReport(ev)}
-                        >
-                          {t.showReport}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+                      ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Empty State */}
-          {events.length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-gray-500 text-lg font-medium mb-2">
-                No events found
+          {/* Filter and Add Button Row */}
+          <div className="bg-white shadow-sm border border-gray-200 p-4 lg:p-6 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                <label
+                  className={`flex items-center px-4 py-2 rounded-full border cursor-pointer transition ${filter === "ongoing"
+                    ? "bg-green-100 border-green-500 text-green-700"
+                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
+                    }`}
+                >
+                  <input
+                    type="radio"
+                    checked={filter === "ongoing"}
+                    onChange={() => setFilter("ongoing")}
+                    className="hidden"
+                  />
+                  <Clock3 className="w-4 h-4 mr-2" />
+                  <span className="text-sm font-medium">{t.ongoing}</span>
+                </label>
+
+                <label
+                  className={`flex items-center px-4 py-2 rounded-full border cursor-pointer transition ${filter === "previous"
+                    ? "bg-blue-100 border-blue-500 text-blue-700"
+                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
+                    }`}
+                >
+                  <input
+                    type="radio"
+                    checked={filter === "previous"}
+                    onChange={() => setFilter("previous")}
+                    className="hidden"
+                  />
+                  <History className="w-4 h-4 mr-2" />
+                  <span className="text-sm font-medium">{t.previous}</span>
+                </label>
               </div>
-              <div className="text-gray-400 text-sm">
-                Try adjusting your filter or add a new event
-              </div>
+
+              <button
+                onClick={handleOpenAddModal}
+                className="flex items-center justify-center px-6 py-3 
+             text-lg font-semibold 
+             border border-blue-700 bg-blue-700 text-white 
+             rounded-md shadow-md 
+             hover:bg-blue-800 hover:shadow-lg 
+             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
+             transition-all duration-200"
+              >
+                <PlusCircle className="w-4 h-4 mr-2" />
+                <span className="text-sm font-medium">{t.addEvent}</span>
+              </button>
             </div>
-          )}
-        </div>
+          </div>
 
-        {/* Modals */}
-        {showAddModal && (
-          <Modal onClose={handleCancelAddEvent}>
-            <AddEventForm
-              form={form}
-              eventTypes={eventTypes}
-              users={users}
-              onSubmit={handleAddEvent}
-              onClose={handleCancelAddEvent}
-              handleFormChange={handleFormChange}
-              handleFileChange={handleFileChange}
-              handleRemovePhoto={handleRemovePhoto}
+          {/* Events Table */}
+          <div className="bg-white shadow-sm border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      {t.sn}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      {t.eventDetails}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      {t.startDate}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      {t.endDate}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      {t.action}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {[...events]
+                    .sort((a, b) => new Date(b.start_date_time) - new Date(a.start_date_time))
+                    .map((ev, idx) => (
+                      <tr
+                        key={ev.id}
+                        className="hover:bg-gray-50 transition-colors duration-150"
+                      >
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                          {idx + 1}
+                        </td>
+
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <button
+                            className="text-sm text-orange-600 hover:text-orange-800 font-medium hover:underline focus:outline-none"
+                            onClick={() => handleShowReport(ev)}
+                          >
+                            {ev.name}
+                          </button>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <div className="space-y-1">
+                            <div className="font-medium">
+                              {formatDateTime(ev.start_date_time).date}
+                            </div>
+                            <div className="text-gray-600">
+                              {formatDateTime(ev.start_date_time).time}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <div className="space-y-1">
+                            <div className="font-medium">
+                              {formatDateTime(ev.end_date_time).date}
+                            </div>
+                            <div className="text-gray-600">
+                              {formatDateTime(ev.end_date_time).time}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <button
+                            className="bg-gray-800 hover:bg-black text-white text-sm font-medium px-4 py-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                            onClick={() => handleShowReport(ev)}
+                          >
+                            {t.showReport}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Empty State */}
+            {events.length === 0 && (
+              <div className="text-center py-12">
+                <div className="text-gray-500 text-lg font-medium mb-2">
+                  No events found
+                </div>
+                <div className="text-gray-400 text-sm">
+                  Try adjusting your filter or add a new event
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Modals */}
+          {showAddModal && (
+            <Modal onClose={handleCancelAddEvent}>
+              <AddEventForm
+                form={form}
+                eventTypes={eventTypes}
+                users={users}
+                onSubmit={handleAddEvent}
+                onClose={handleCancelAddEvent}
+                handleFormChange={handleFormChange}
+                handleFileChange={handleFileChange}
+                handleRemovePhoto={handleRemovePhoto}
+                language={language}
+              />
+            </Modal>
+          )}
+
+          {showReport && (
+            <EventReport
+              showReport={showReport}
+              onClose={() => setShowReport(null)}
+              handleShowUserDetails={handleShowUserDetails}
+              formatDateTime={formatDateTime}
               language={language}
             />
-          </Modal>
-        )}
+          )}
 
-        {showReport && (
-          <EventReport
-            showReport={showReport}
-            onClose={() => setShowReport(null)}
-            handleShowUserDetails={handleShowUserDetails}
-            formatDateTime={formatDateTime}
-            language={language}
-          />
-        )}
-
-        {userDetailModal && (
-          <UserDetailModal
-            userDetailModal={userDetailModal}
-            onClose={() => setUserDetailModal(null)}
-            formatDateTime={formatDateTime}
-            language={language}
-          />
-        )}
+          {userDetailModal && (
+            <UserDetailModal
+              userDetailModal={userDetailModal}
+              onClose={() => setUserDetailModal(null)}
+              formatDateTime={formatDateTime}
+              language={language}
+            />
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* The rest of your component's JSX */}
+
+      {isAddingEvent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex flex-col items-center justify-center z-[1001]">
+          <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-white mt-4 text-lg">Adding Event...</p>
+        </div>
+      )}
+    </>
   );
 };
 

@@ -1,9 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { ChevronRight, Users, Calendar, Settings, BarChart3, FileText, MessageSquare, Globe, Shield, Award } from 'lucide-react';
+import { useLanguage } from './context/LanguageContext';
+import { Link } from "react-router-dom";
+
 
 const Page = () => {
+  const { language } = useLanguage();
   const [isLoaded, setIsLoaded] = useState(false);
   const [selectedPanel, setSelectedPanel] = useState(null);
+  const role = localStorage.getItem("role");
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userName = user ? user.username : "";
+
 
   const panels = [
     {
@@ -68,7 +76,7 @@ const Page = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-green-50">
-      <div style={{top:70}} className="absolute inset-0 overflow-hidden">
+      <div style={{ top: 70 }} className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-orange-200 to-orange-300 rounded-full opacity-20 animate-pulse" />
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-br from-green-200 to-green-300 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '2s' }} />
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full opacity-10 animate-spin" style={{ animationDuration: '30s' }} />
@@ -87,17 +95,10 @@ const Page = () => {
                 <div className="absolute inset-0 border-2 border-transparent border-t-orange-400 border-r-green-400 rounded-full animate-spin" style={{ animationDuration: '8s' }} />
               </div>
               <div className="hidden md:block">
-                <h1 className="text-xl font-bold text-gray-800">Indian National Congress</h1>
+                <h1 className="text-xl font-bold text-gray-800">{language === "hi"
+                  ? `स्वागत है - ${userName}`
+                  : `Welcome - ${userName}`}</h1>
                 <p className="text-sm text-gray-600">भारतीय राष्ट्रीय कांग्रेस</p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <div className="p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-md hover:shadow-lg transition-shadow duration-300">
-                <Globe className="w-5 h-5 text-gray-600" />
-              </div>
-              <div className="p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-md hover:shadow-lg transition-shadow duration-300">
-                <Shield className="w-5 h-5 text-gray-600" />
               </div>
             </div>
           </div>
@@ -106,7 +107,7 @@ const Page = () => {
 
       <main className="relative z-10 px-4 py-8">
         <div className="max-w-7xl mx-auto">
-          
+
           <div className={`text-center mb-16 transform transition-all duration-1000 delay-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
             <div className="inline-block mb-6">
               <div className="p-4 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20">
@@ -125,14 +126,17 @@ const Page = () => {
           </div>
 
           <div className={`transform transition-all duration-1000 delay-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-              <div className="text-center animate-fadeIn">
-                <button className="group px-10 py-4 bg-gradient-to-r from-orange-500 to-green-600 text-white font-bold text-lg rounded-full shadow-2xl transform hover:scale-105 transition-all duration-300 hover:shadow-3xl">
-                  <span className="flex items-center justify-center">
-                    Admin Panel
-                    <ChevronRight className="ml-2 w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
-                  </span>
-                </button>
-              </div>
+            <div className="text-center animate-fadeIn">
+              <Link to="/admin">
+              <button 
+                className="group px-10 py-4 bg-gradient-to-r from-orange-500 to-green-600 text-white font-bold text-lg rounded-full shadow-2xl transform hover:scale-105 transition-all duration-300 hover:shadow-3xl">
+                <span className="flex items-center justify-center">
+                  Admin Panel
+                  <ChevronRight className="ml-2 w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
+                </span>
+              </button>
+              </Link>
+            </div>
           </div>
         </div>
       </main>

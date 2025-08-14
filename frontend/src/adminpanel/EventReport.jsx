@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import './EventReport.css';
 import Modal from './Modal';
 import ReactDOMServer from 'react-dom/server';
 import PdfExportButton from './PdfExportButton';
+import { useLanguage } from '../context/LanguageContext';
 
 const TEXT = {
   en: {
@@ -18,9 +19,9 @@ const TEXT = {
     sn: 'S. No.',
     userName: 'User Name',
     designation: 'Designation',
-    viewed: 'View', 
-    seen: 'Seen', 
-    unseen: 'Unseen', 
+    viewed: 'View',
+    seen: 'Seen',
+    unseen: 'Unseen',
     updated: 'Updated',
     notUpdated: 'Not Updated',
     action: 'Action',
@@ -39,7 +40,7 @@ const TEXT = {
     sn: 'क्रम संख्या',
     userName: 'उपयोगकर्ता का नाम',
     designation: 'पदनाम',
-    viewed: 'View', 
+    viewed: 'View',
     seen: 'देखा गया',
     unseen: 'नहीं देखा गया',
     updated: 'अपडेट किया गया',
@@ -49,7 +50,8 @@ const TEXT = {
   },
 };
 
-const EventReport = ({ showReport, onClose, handleShowUserDetails, formatDateTime, language = 'hi' }) => {
+const EventReport = ({ showReport, onClose, handleShowUserDetails, formatDateTime }) => {
+  const { language } = useLanguage();
   const [filter, setFilter] = useState('all');
   const t = TEXT[language] || TEXT.hi;
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -83,14 +85,14 @@ const EventReport = ({ showReport, onClose, handleShowUserDetails, formatDateTim
       const tempRatios = Array(photosArr.length).fill(1);
       photosArr.forEach((photo, idx) => {
         const img = new window.Image();
-        img.onload = function() {
+        img.onload = function () {
           tempRatios[idx] = img.naturalWidth / img.naturalHeight;
           loaded++;
           if (loaded === photosArr.length) {
             setRatios([...tempRatios]);
           }
         };
-        img.onerror = function() {
+        img.onerror = function () {
           loaded++;
           if (loaded === photosArr.length) {
             setRatios([...tempRatios]);
@@ -127,14 +129,19 @@ const EventReport = ({ showReport, onClose, handleShowUserDetails, formatDateTim
 
 
   return (
-    <Modal onClose={onClose}>
+    <Modal>
       <div className="event-report-modal">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3>{t.title}</h3>
+          <h3 style={{ margin: "0" }}>{t.title}</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-red-600 text-3xl font-bold focus:outline-none"
+            aria-label="Close"
+          >
+            &times;
+          </button>
         </div>
-        {/* PDF content wrapper start */}
         <div id="event-report-pdf-section">
-          {/* Remove inline PDF style, now handled by PdfExportButton */}
           <div className="event-details-box">
             <div><b>{t.name}</b> {showReport.event.name}</div>
             <div><b>{t.desc}</b> {showReport.event.description}</div>
@@ -161,25 +168,22 @@ const EventReport = ({ showReport, onClose, handleShowUserDetails, formatDateTim
                     } else if (typeof parsed === 'string') {
                       photosArr = [parsed];
                     } else {
-                      // Fallback: comma separated
                       photosArr = photosRaw.split(',').map(s => s.trim()).filter(Boolean);
                     }
                   } catch {
-                    // Not JSON, try comma separated
                     photosArr = photosRaw.split(',').map(s => s.trim()).filter(Boolean);
                   }
                 }
               }
-              // Remove empty/invalid
               photosArr = photosArr.filter(p => !!p && typeof p === 'string');
               if (photosArr.length === 1) {
                 return (
-                  <div className="event-photos collage-single" style={{border:'1px solid #eee', minHeight:'120px'}}>
-                    <div className="collage-photo" style={{width:'100%', height:'100%', borderRadius:'8px', overflow:'hidden'}}>
+                  <div className="event-photos collage-single" style={{ border: '1px solid #eee', minHeight: '120px' }}>
+                    <div className="collage-photo" style={{ width: '100%', height: '100%', borderRadius: '8px', overflow: 'hidden' }}>
                       <img
                         src={photosArr[0].startsWith('http') ? photosArr[0] : `${apiUrl}${photosArr[0]}`}
                         alt="Photo"
-                        style={{width:'100%', height:'100%', objectFit:'cover'}}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         crossOrigin="anonymous"
                       />
                     </div>
@@ -187,7 +191,7 @@ const EventReport = ({ showReport, onClose, handleShowUserDetails, formatDateTim
                 );
               } else if (photosArr.length > 1) {
                 return (
-                  <div className="event-photos collage-flex" style={{border:'1px solid #eee', minHeight:'120px'}}>
+                  <div className="event-photos collage-flex" style={{ border: '1px solid #eee', minHeight: '120px' }}>
                     {photosArr.map((photo, idx) => (
                       <div
                         key={idx}
@@ -195,16 +199,16 @@ const EventReport = ({ showReport, onClose, handleShowUserDetails, formatDateTim
                         style={{
                           flex: `${ratios[idx] || 1} 1 0%`,
                           aspectRatio: ratios[idx] ? `${ratios[idx]}` : '1/1',
-                          borderRadius:'8px',
-                          overflow:'hidden',
-                          minWidth:'80px',
-                          maxWidth:'100%'
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          minWidth: '80px',
+                          maxWidth: '100%'
                         }}
                       >
                         <img
                           src={photo.startsWith('http') ? photo : `${apiUrl}${photo}`}
                           alt="Photo"
-                          style={{width:'100%', height:'100%', objectFit:'cover'}}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           crossOrigin="anonymous"
                         />
                       </div>
@@ -212,7 +216,7 @@ const EventReport = ({ showReport, onClose, handleShowUserDetails, formatDateTim
                   </div>
                 );
               } else {
-                return <div style={{textAlign:'center',color:'#aaa',fontSize:'16px'}}>No photos available / कोई फोटो नहीं</div>;
+                return <div style={{ textAlign: 'center', color: '#aaa', fontSize: '16px' }}>No photos available / कोई फोटो नहीं</div>;
               }
             })()}
             {/* Video */}
@@ -236,7 +240,7 @@ const EventReport = ({ showReport, onClose, handleShowUserDetails, formatDateTim
             <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px' }}>
               <div>
 
-                
+
                 <PdfExportButton targetId="event-report-pdf-section" filename="event-report.pdf" headerHtml={headerHtml} />
               </div>
               <select value={filter} onChange={e => setFilter(e.target.value)} style={{ padding: '4px 8px', borderRadius: '4px' }}>
@@ -283,9 +287,18 @@ const EventReport = ({ showReport, onClose, handleShowUserDetails, formatDateTim
                 ))}
               </tbody>
             </table>
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={onClose}
+                className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
+              >
+                EXIT
+              </button>
+            </div>
+
+
           </div>
-          {/* PDF content wrapper end */}
-        </div>
+        </div>  
       </div>
     </Modal>
   );
