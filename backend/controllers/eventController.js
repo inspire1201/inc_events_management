@@ -146,7 +146,7 @@ exports.addEvent = async (req, res) => {
       for (const file of req.files.photos) {
         const url = await uploadToS3(file, "event_photos");
         photos.push(url);
-      }x
+      }
     }
 
     let video = null;

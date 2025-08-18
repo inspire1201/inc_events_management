@@ -59,18 +59,57 @@ const Admin = () => {
     }
   }, [navigate]);
 
-  const today = new Date().toISOString().split("T")[0];
+  // function getTodayDateInKolkata() {
+  //   const today = new Date().toLocaleString("en-CA", {
+  //     timeZone: "Asia/Kolkata",
+  //     year: "numeric",
+  //     month: "2-digit",
+  //     day: "2-digit",
+  //   });
+  //   return today.split(",")[0];
+  // }
+  function getCurrentISTDateTimeInputFormat() {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
+    const parts = formatter.formatToParts(now);
+    const map = {};
+    parts.forEach(({ type, value }) => {
+      map[type] = value;
+    });
+
+    return `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}`;
+  }
+
+
   const [form, setForm] = useState({
     name: "",
     description: "",
     start_date_time: "",
     end_date_time: "",
-    issue_date: today,
+    issue_date: getCurrentISTDateTimeInputFormat(),
     type: eventTypes[0],
     user: users[0],
     location: "",
     photos: null,
   });
+
+  useEffect(() => {
+    setForm((prevForm) => ({
+      ...prevForm,
+      issue_date: getCurrentISTDateTimeInputFormat(),
+    }));
+  }, []);
+
+
 
   const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -135,13 +174,44 @@ const Admin = () => {
     setForm((prev) => ({ ...prev, photos: dt.files.length ? dt.files : null }));
   };
 
+
+  function convertToKolkataISOString(datetimeLocal) {
+    if (!datetimeLocal) return '';
+    const localDate = new Date(datetimeLocal);
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    }).formatToParts(localDate);
+
+    const map = {};
+    parts.forEach(({ type, value }) => {
+      map[type] = value;
+    });
+
+    return `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}:${map.second}+05:30`;
+  }
+
   const handleAddEvent = async (e) => {
     e.preventDefault();
 
     const formData = new FormData();
+
     Object.entries(form).forEach(([key, value]) => {
       if (key === "photos" && value) {
         Array.from(value).forEach((file) => formData.append("photos", file));
+      } else if (
+        key === "start_date_time" ||
+        key === "end_date_time" ||
+        key === "issue_date"
+      ) {
+        const converted = convertToKolkataISOString(value);
+        formData.append(key, converted);
       } else {
         formData.append(key, value);
       }
@@ -168,7 +238,7 @@ const Admin = () => {
           description: "",
           start_date_time: "",
           end_date_time: "",
-          issue_date: today,
+          issue_date: getCurrentISTDateTimeInputFormat(),
           type: eventTypes[0],
           user: users[0],
           location: "",
@@ -199,10 +269,6 @@ const Admin = () => {
     }
   };
 
-
-
-
-
   const handleShowReport = (event) => {
     fetch(`${apiUrl}/api/event_report/${event.id}`)
       .then((res) => res.json())
@@ -225,7 +291,7 @@ const Admin = () => {
       description: "",
       start_date_time: "",
       end_date_time: "",
-      issue_date: today,
+      issue_date: getCurrentISTDateTimeInputFormat(),
       type: eventTypes[0],
       user: users[0],
       location: "",
@@ -417,6 +483,8 @@ const Admin = () => {
     setLoadedDraftId(draftId);
   };
 
+
+
   return (
     <>
 
@@ -569,6 +637,9 @@ const Admin = () => {
                       {t.eventDetails}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      {t.issueDate}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       {t.startDate}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
@@ -598,6 +669,16 @@ const Admin = () => {
                           >
                             {ev.name}
                           </button>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <div className="space-y-1">
+                            <div className="font-medium">
+                              {formatDateTime(ev.issue_date).date}
+                            </div>
+                            <div className="text-gray-600">
+                              {formatDateTime(ev.issue_date).time}
+                            </div>
+                          </div>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                           <div className="space-y-1">

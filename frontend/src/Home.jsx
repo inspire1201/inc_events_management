@@ -94,8 +94,8 @@ const Page = () => {
                 </div>
                 <div className="absolute inset-0 border-2 border-transparent border-t-orange-400 border-r-green-400 rounded-full animate-spin" style={{ animationDuration: '8s' }} />
               </div>
-              <div className="hidden md:block">
-                <h1 className="text-xl font-bold text-gray-800">{language === "hi"
+              <div className="md:block">
+                <h1 className="text-xl max-[440px]:text-sm font-bold text-gray-800">{language === "hi"
                   ? `स्वागत है - ${userName}`
                   : `Welcome - ${userName}`}</h1>
                 <p className="text-sm text-gray-600">भारतीय राष्ट्रीय कांग्रेस</p>

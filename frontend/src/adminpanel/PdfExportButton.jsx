@@ -22,7 +22,7 @@ const pdfHideStyle = `
   .pdf-hindi-text { font-size: 14px !important; font-family: 'Noto Sans', 'Mangal', Arial, sans-serif !important; }
 `;
 
-const PdfExportButton = ({ targetId, filename = 'event-report.pdf', children, rowsPerPage = 40, headerHtml = '' }) => {
+const PdfExportButton = ({ targetId, filename = 'event-report.pdf', children, rowsPerPage = 29, headerHtml = '' }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePDF = async () => {

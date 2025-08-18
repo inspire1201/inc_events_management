@@ -67,24 +67,25 @@ const AddEventForm = ({
   const minDateTime = getTodayDateTimeLocal();
 
 
+
   return (
     <form
       onSubmit={onSubmit}
       className="bg-white p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto border border-gray-300 rounded-lg shadow-lg"
     >
-                  <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-red-600 text-3xl font-bold focus:outline-none float-right m-b-4"
-            aria-label="Close"
-          >
-            &times;
-          </button>
+      <button
+        onClick={onClose}
+        className="text-gray-500 hover:text-red-600 text-3xl font-bold focus:outline-none float-right m-b-4"
+        aria-label="Close"
+      >
+        &times;
+      </button>
       {/* Title */}
       <h3 className="text-2xl font-bold text-black text-center mb-6 border-b border-gray-300 pb-4">
         {t.title}
-      
+
       </h3>
-      
+
 
       {/* Form Fields */}
       <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6">
@@ -110,7 +111,7 @@ const AddEventForm = ({
             onChange={handleFormChange}
             required
             rows={2}
-            className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-black rounded-md bg-white text-black resize-none"
+            className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-black rounded-md bg-white text-black resize-y"
           />
         </div>
       </div>
@@ -144,18 +145,16 @@ const AddEventForm = ({
           />
         </div>
         {/* Issue Date */}
-        <div className="flex flex-col">
+        {/* <div className="flex flex-col">
           <label className="font-semibold text-black mb-2 text-sm uppercase tracking-wide">{t.issue}</label>
           <input
-            type="date"
+            type="datetime-local"
             name="issue_date"
-            value={form.issue_date}
-            onChange={handleFormChange}
             readOnly
             required
             className="w-full px-4 py-3 border border-gray-200 bg-gray-100 text-gray-600 rounded-md cursor-not-allowed"
           />
-        </div>
+        </div> */}
       </div>
 
       {/* Location */}
@@ -218,8 +217,8 @@ const AddEventForm = ({
           onChange={handleFileChange}
           disabled={form.photos && form.photos.length >= 10}
           className={`w-full p-3 border-2 border-dashed rounded-md transition ${form.photos && form.photos.length >= 10
-              ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
-              : "bg-gray-50 text-black border-gray-300 hover:border-black focus:border-black"
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+            : "bg-gray-50 text-black border-gray-300 hover:border-black focus:border-black"
             }`}
         />
         {photoError && <p className="text-red-600 mt-2 text-sm">{photoError}</p>}

@@ -27,7 +27,7 @@ const TEXT = {
   },
 };
 
-const UserEventDetails = ({ event, formatDateTime }) => {
+const UserEventDetails = ({ event, formatDateTime, onClose }) => {
   const { language } = useLanguage();
   const t = TEXT[language] || TEXT.hi;
   const apiUrl = import.meta.env.VITE_API_URL
@@ -35,6 +35,9 @@ const UserEventDetails = ({ event, formatDateTime }) => {
   return (
     <>
       <div className='event-details'>
+        <div onClick={onClose} className="flex justify-end">
+          <span className="text-4xl cursor-pointer">&times;</span>
+        </div>
         <div><h2 className="userpanel-modal-title">{t.title}</h2></div>
         <div><b>{t.name}</b> {event.name}</div>
         <div><b>{t.desc}</b> {event.description}</div>
@@ -44,6 +47,8 @@ const UserEventDetails = ({ event, formatDateTime }) => {
         <div><b>{t.location}</b> {event.location}</div>
         {/* <div><b>{t.level}</b> {event.level}</div> */}
         <div><b>{t.type}</b> {event.type}</div>
+
+
         <div className="event-media-section">
           {/* Photos */}
           {event.photos && (() => {
@@ -78,8 +83,11 @@ const UserEventDetails = ({ event, formatDateTime }) => {
               />
             </div>
           )}
+       
         </div>
+        
       </div>
+      
     </>
   );
 };

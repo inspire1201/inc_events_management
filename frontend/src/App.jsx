@@ -4,16 +4,14 @@ import FirstPage from "./FirstPage";
 import LanguagePage from "./LanguagePage";
 import Login from "./LoginPage/Login";
 import Admin from "./adminpanel/Admin";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import UserPanel from "./userpanel/userpanel";
 import Header from "./Header";
 import Home from "./Home";
 import { useLanguage } from "./context/LanguageContext";
 
 function AppContent() {
-  const location = useLocation();
-  const { language,setLanguage } = useLanguage();
-
+  const { language, setLanguage } = useLanguage();
 
   useEffect(() => {
     const SESSION_KEY = "app_session_active";
@@ -26,20 +24,16 @@ function AppContent() {
     sessionStorage.setItem(SESSION_KEY, "true");
   }, []);
 
-
   const [step, setStep] = useState(() => {
     const savedStep = localStorage.getItem("appStep");
     return savedStep ? Number(savedStep) : 1;
   });
 
-
-
   useEffect(() => {
     localStorage.setItem("appStep", step);
   }, [step]);
 
-
-
+  // ✅ Handle onboarding steps FIRST, independent of route
   if (step === 1) {
     return <FirstPage onStart={() => setStep(2)} />;
   }
@@ -56,14 +50,12 @@ function AppContent() {
     );
   }
 
-  if (location.pathname === "/") {
-    return <Login language={language} />;
-  }
-
+  // ✅ After step 3, use proper routing
   return (
     <>
       <Header />
       <Routes>
+        <Route path="/" element={<Login language={language} />} />
         <Route path="/home" element={<Home />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/userpanel" element={<UserPanel />} />
