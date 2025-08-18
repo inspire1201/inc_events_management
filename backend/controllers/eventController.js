@@ -15,7 +15,7 @@ const uploadToS3 = (file, folder) =>
       Key: fileName,
       Body: file.buffer,
       ContentType: file.mimetype,
-      ACL: "public-read", // use 'private' for signed URLs
+//      ACL: "public-read", // use 'private' for signed URLs
     };
 
     s3.upload(params, (err, data) => {
@@ -146,7 +146,7 @@ exports.addEvent = async (req, res) => {
       for (const file of req.files.photos) {
         const url = await uploadToS3(file, "event_photos");
         photos.push(url);
-      }x
+      }
     }
 
     let video = null;
