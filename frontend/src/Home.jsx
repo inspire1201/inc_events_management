@@ -94,8 +94,8 @@ const Page = () => {
                 </div>
                 <div className="absolute inset-0 border-2 border-transparent border-t-orange-400 border-r-green-400 rounded-full animate-spin" style={{ animationDuration: '8s' }} />
               </div>
-              <div className="hidden md:block">
-                <h1 className="text-xl font-bold text-gray-800">{language === "hi"
+              <div className="md:block">
+                <h1 className="text-xl max-[440px]:text-sm font-bold text-gray-800">{language === "hi"
                   ? `स्वागत है - ${userName}`
                   : `Welcome - ${userName}`}</h1>
                 <p className="text-sm text-gray-600">भारतीय राष्ट्रीय कांग्रेस</p>
@@ -127,14 +127,15 @@ const Page = () => {
 
           <div className={`transform transition-all duration-1000 delay-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
             <div className="text-center animate-fadeIn">
-              <Link to="/admin">
-              <button 
-                className="group px-10 py-4 bg-gradient-to-r from-orange-500 to-green-600 text-white font-bold text-lg rounded-full shadow-2xl transform hover:scale-105 transition-all duration-300 hover:shadow-3xl">
-                <span className="flex items-center justify-center">
-                  Admin Panel
-                  <ChevronRight className="ml-2 w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
-                </span>
-              </button>
+              {/* <Link to="/admin"> */}
+              <Link to={role === "admin" ? "/admin" : "/userpanel"}>
+                <button
+                  className="group px-10 py-4 bg-gradient-to-r from-orange-500 to-green-600 text-white font-bold text-lg rounded-full shadow-2xl transform hover:scale-105 transition-all duration-300 hover:shadow-3xl">
+                  <span className="flex items-center justify-center">
+                    Admin Panel
+                    <ChevronRight className="ml-2 w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
+                  </span>
+                </button>
               </Link>
             </div>
           </div>

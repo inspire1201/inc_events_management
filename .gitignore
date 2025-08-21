@@ -1,4 +1,12 @@
 .gitignore
 dleted
+# Node.js
+node_modules/
+npm-debug.log
+.env
+
+# Build
+frontend/dist/
+backend/build/
 
 

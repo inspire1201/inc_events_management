@@ -4,13 +4,16 @@ import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx' // Import the AuthProvider
 import { LanguageProvider } from './context/LanguageContext.jsx'
+import { DateTimeProvider } from './context/DateTimeContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
-      <LanguageProvider>
-        <App />
-      </LanguageProvider>
+      <DateTimeProvider>
+        <LanguageProvider>
+          <App />
+        </LanguageProvider>
+      </DateTimeProvider>
     </AuthProvider>
   </StrictMode>,
 )
