@@ -63,7 +63,12 @@ const UserEventUpdateForm = ({
   const { language } = useLanguage();
   const t = TEXT[language] || TEXT.hi;
 
-  const [localForm, setLocalForm] = useState(updateForm);
+  // const [localForm, setLocalForm] = useState(updateForm);
+  const [localForm, setLocalForm] = useState({
+    ...updateForm,
+    media_video_urls: updateForm?.media_video_urls || '',
+    media_other_urls: updateForm?.media_other_urls || ''
+  });
   const [localMedia, setLocalMedia] = useState({
     photos: updateForm?.photos || [],
     video: updateForm?.video || [],
@@ -245,14 +250,14 @@ const UserEventUpdateForm = ({
         onSubmit={onUpdateSubmitWithProgress}
         className="p-5 bg-gray-100 rounded-lg shadow-md"
       >
-        
-           <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-red-600 text-3xl font-bold focus:outline-none float-right"
-            aria-label="Close"
-          >
-            &times;
-          </button> 
+
+        <button
+          onClick={onClose}
+          className="text-gray-500 hover:text-red-600 text-3xl font-bold focus:outline-none float-right"
+          aria-label="Close"
+        >
+          &times;
+        </button>
         <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800 text-center">
           {t.title}
         </h2>
@@ -281,7 +286,7 @@ const UserEventUpdateForm = ({
             />
           </div>
 
-          <div>
+          {/* <div>
             <label className="block text-sm sm:text-base md:text-lg font-medium text-indigo-900 mb-2">
               {t.start}
             </label>
@@ -306,7 +311,46 @@ const UserEventUpdateForm = ({
             <div className="p-3 bg-gray-200 rounded-md text-sm sm:text-base md:text-lg">
               {formatDateTime(localForm.issue_date)}
             </div>
+          </div> */}
+          {/* Start Date/Time */}
+          <div>
+            <label className="block text-sm sm:text-base md:text-lg font-medium text-indigo-900 mb-2">
+              {t.start}
+            </label>
+            <input
+              type="datetime-local"
+              name="start_date_time"
+              value={localForm.start_date_time ? new Date(localForm.start_date_time).toISOString().slice(0, 16) : ''}
+              onChange={handleLocalFormChange}
+              required
+              className="w-full p-3 border border-gray-300 rounded-md text-sm sm:text-base md:text-lg"
+            />
           </div>
+
+          {/* End Date/Time */}
+          <div>
+            <label className="block text-sm sm:text-base md:text-lg font-medium text-indigo-900 mb-2">
+              {t.end}
+            </label>
+            <input
+              type="datetime-local"
+              name="end_date_time"
+              value={localForm.end_date_time ? new Date(localForm.end_date_time).toISOString().slice(0, 16) : ''}
+              onChange={handleLocalFormChange}
+              required
+              className="w-full p-3 border border-gray-300 rounded-md text-sm sm:text-base md:text-lg"
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm sm:text-base md:text-lg font-medium text-indigo-900 mb-2">
+              {t.issue}
+            </label>
+            <div className="p-3 bg-gray-200 rounded-md text-sm sm:text-base md:text-lg">
+              {formatDateTime(localForm.issue_date)}
+            </div>
+          </div>
+
         </div>
 
         {/* Location & Attendees */}
@@ -427,6 +471,37 @@ const UserEventUpdateForm = ({
               </div>
             )}
           </div>
+          {/* Media Links */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Video URLs */}
+            <div>
+              <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-2">
+                Media Video URLs (YouTube etc.)
+              </label>
+              <textarea
+                name="media_video_urls"
+                value={localForm.media_video_urls || ''}
+                onChange={handleLocalFormChange}
+                placeholder="Enter URLs separated by commas"
+                className="w-full p-3 border border-gray-300 rounded-md text-sm sm:text-base md:text-lg min-h-[100px]"
+              />
+            </div>
+
+            {/* Other URLs */}
+            <div>
+              <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-2">
+                Media Other URLs (News pages, articles etc.)
+              </label>
+              <textarea
+                name="media_other_urls"
+                value={localForm.media_other_urls || ''}
+                onChange={handleLocalFormChange}
+                placeholder="Enter URLs separated by commas"
+                className="w-full p-3 border border-gray-300 rounded-md text-sm sm:text-base md:text-lg min-h-[100px]"
+              />
+            </div>
+          </div>
+
         </div>
 
         {/* Submit Button */}

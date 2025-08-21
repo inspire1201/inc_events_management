@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import FirstPage from "./FirstPage";
 import LanguagePage from "./LanguagePage";

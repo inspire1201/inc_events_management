@@ -5,6 +5,7 @@ import logo from "./assets/download.png";
 import vector from "./assets/Vector.svg";
 import { Home, UserSquare, ShieldCheck, Menu, X } from "lucide-react";
 import { useLanguage } from "./context/LanguageContext";
+import Marquee from "./Marquee";
 
 function Header() {
   const { language, handleLanguageToggle } = useLanguage();
@@ -83,7 +84,7 @@ function Header() {
           <nav className="flex gap-6 xl:gap-8 items-center">
             <Link
               to="/home"
-              className="text-gray-800 hover:text-black font-semibold transition-colors duration-200 flex items-center gap-2 px-3 py-2 border-b-2 border-transparent hover:border-black"
+              className="text-gray-800 hover:text-black font-semibold transition-colors duration-200 flex items-center gap-2 py-2 border-b-2 border-transparent hover:border-black"
             >
               <Home className="w-5 h-5" />
               {texts[language].home}
@@ -108,6 +109,7 @@ function Header() {
               </Link>
             )}
           </nav>
+
 
           <div className="flex items-center gap-4">
             <button
@@ -215,7 +217,7 @@ function Header() {
           </div>
         </div>
       </div>
-
+<Marquee/>
     </>
   );
 }
