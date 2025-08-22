@@ -74,8 +74,7 @@ exports.updateEvent = async (req, res) => {
   try {
     const {
       event_id, user_id, name, description,
-      start_date_time, end_date_time, issue_date, location, attendees, type, media_video_urls,
-      media_other_urls
+      start_date_time, end_date_time, issue_date, location, attendees, type
     } = req.body;
 
     const formattedStart = toMySQLDateTime(start_date_time);
@@ -112,15 +111,13 @@ exports.updateEvent = async (req, res) => {
     await db.query(
       `INSERT INTO event_updates
          (event_id, user_id, name, description, start_date_time, end_date_time, issue_date,
-          location, attendees, update_date, photos, video, media_photos, type , media_video_urls, media_other_urls)
+          location, attendees, update_date, photos, video, media_photos, type)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         event_id, user_id, name, description,
         formattedStart, formattedEnd, formattedIssue,
         location, attendees, update_date,
         JSON.stringify(photos), video, JSON.stringify(media_photos), type,
-        JSON.stringify(media_video_urls?.split(',').map(u => u.trim()) || []),
-        JSON.stringify(media_other_urls?.split(',').map(u => u.trim()) || [])
       ]
     );
 
