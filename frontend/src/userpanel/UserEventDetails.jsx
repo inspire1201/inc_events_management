@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './UserEventDetails.css';
 import { useLanguage } from '../context/LanguageContext';
+import PDFDownloadSection from '../PDFDownloadSection';
 
 const TEXT = {
   en: {
@@ -33,6 +34,7 @@ const UserEventDetails = ({ event, formatDateTime, onClose }) => {
   const apiUrl = import.meta.env.VITE_API_URL;
   const [previewImg, setPreviewImg] = useState(null);
 
+
   if (!event) return null;
 
   const handleImageClick = (src) => {
@@ -55,6 +57,8 @@ const UserEventDetails = ({ event, formatDateTime, onClose }) => {
         <div><b>{t.issue}</b> {formatDateTime(event.issue_date).date}</div>
         <div><b>{t.location}</b> {event.location}</div>
         <div><b>{t.type}</b> {event.type}</div>
+
+
 
         <div className="space-y-6 p-4">
           {/* Photos */}
@@ -113,6 +117,16 @@ const UserEventDetails = ({ event, formatDateTime, onClose }) => {
             className="max-h-full max-w-full object-contain rounded-md shadow-lg"
           />
         </div>
+      )}
+
+      {/* PDF Section */}
+      {event.pdf && (
+        <PDFDownloadSection
+          event={event}
+          apiUrl={apiUrl}
+          showViewButton={true}
+          showDownloadButton={true}
+        />
       )}
     </>
   );

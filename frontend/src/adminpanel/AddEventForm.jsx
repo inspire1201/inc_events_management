@@ -30,6 +30,8 @@ const TEXT = {
     video: "Video (max 10 MB):",
     addBtn: "Add",
     cancelBtn: "Cancel",
+    pdf: "Upload PDF (max 1 file):",
+
   },
   hi: {
     title: "आयोजन जोड़ें",
@@ -45,6 +47,8 @@ const TEXT = {
     video: "वीडियो (न्यूनतम 10 MB):",
     addBtn: "जोड़ें",
     cancelBtn: "रद्द करें",
+    pdf: "PDF अपलोड करें (अधिकतम 1 फ़ाइल):",
+
   },
 };
 
@@ -58,6 +62,7 @@ const AddEventForm = ({
   handleFileChange,
   handleRemovePhoto,
   photoError,
+  handleRemovePDF
 }) => {
 
   const { language } = useLanguage();
@@ -242,6 +247,36 @@ const AddEventForm = ({
           </div>
         )}
       </div>
+
+      <div className="mt-6">
+        <label className="font-semibold text-black mb-2 text-sm uppercase tracking-wide">
+          {t.pdf}
+        </label>
+        <input
+          type="file"
+          name="pdf"
+          accept="application/pdf"
+          onChange={(e) => handleFileChange(e, "pdf")}
+          disabled={!!form.pdf}
+          className={`w-full p-3 border-2 border-dashed rounded-md transition ${form.pdf
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+            : "bg-gray-50 text-black border-gray-300 hover:border-black focus:border-black"
+            }`}
+        />
+        {form.pdf && (
+          <div className="mt-3 flex items-center justify-between bg-gray-100 px-4 py-2 rounded-md border border-gray-300">
+            <span className="text-black text-sm truncate">{form.pdf.name}</span>
+            <button
+              type="button"
+              onClick={handleRemovePDF}
+              className="ml-4 bg-black text-white w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-600 transition"
+            >
+              ×
+            </button>
+          </div>
+        )}
+      </div>
+
 
       {/* Buttons */}
       <div className="mt-6 flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4">

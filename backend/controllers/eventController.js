@@ -70,11 +70,13 @@ exports.markEventAsViewed = async (req, res) => {
   }
 };
 
+//make fro pdf upload 24
 exports.updateEvent = async (req, res) => {
   try {
     const {
       event_id, user_id, name, description,
-      start_date_time, end_date_time, issue_date, location, attendees, type
+      start_date_time, end_date_time, issue_date, location, 
+      attendees, type, media_video_urls, media_other_urls
     } = req.body;
 
     const formattedStart = toMySQLDateTime(start_date_time);
@@ -100,6 +102,11 @@ exports.updateEvent = async (req, res) => {
       video = await uploadToS3(req.files.video[0], "event_videos");
     }
 
+    let pdf = null;
+    if (req.files?.pdf?.[0]) {
+      pdf = await uploadToS3(req.files.pdf[0], "event_pdfs");
+    }
+
     const media_photos = [];
     if (req.files?.media_photos) {
       for (const file of req.files.media_photos) {
@@ -108,26 +115,74 @@ exports.updateEvent = async (req, res) => {
       }
     }
 
-    await db.query(
-      `INSERT INTO event_updates
-         (event_id, user_id, name, description, start_date_time, end_date_time, issue_date,
-          location, attendees, update_date, photos, video, media_photos, type)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        event_id, user_id, name, description,
-        formattedStart, formattedEnd, formattedIssue,
-        location, attendees, update_date,
-        JSON.stringify(photos), video, JSON.stringify(media_photos), type,
-      ]
+    // Validate URLs if provided
+    if (media_video_urls && !isValidUrl(media_video_urls)) {
+      return res.status(400).json({ error: "अमान्य YouTube URL प्रारूप" });
+    }
+
+    if (media_other_urls) {
+      const urls = media_other_urls.split(',');
+      for (const url of urls) {
+        if (url.trim() && !isValidUrl(url.trim())) {
+          return res.status(400).json({ 
+            error: `अमान्य URL प्रारूप: ${url}` 
+          });
+        }
+      }
+    }
+
+    const [existing] = await db.query(
+      'SELECT id FROM event_updates WHERE event_id = ? AND user_id = ?',
+      [event_id, user_id]
     );
 
-    res.json({ success: true, photos, video, media_photos });
+    if (existing.length > 0) {
+      await db.query(
+        `UPDATE event_updates
+         SET name = ?, description = ?, start_date_time = ?, end_date_time = ?,
+             issue_date = ?, location = ?, attendees = ?, update_date = ?,
+             photos = ?, video = ?, pdf = ?, media_photos = ?, type = ?,
+             media_video_urls = ?, media_other_urls = ?
+         WHERE event_id = ? AND user_id = ?`,
+        [
+          name, description, formattedStart, formattedEnd,
+          formattedIssue, location, attendees, update_date,
+          JSON.stringify(photos), video, pdf, JSON.stringify(media_photos), type,
+          media_video_urls || null, media_other_urls || null,
+          event_id, user_id
+        ]
+      );
+    } else {
+      await db.query(
+        `INSERT INTO event_updates
+           (event_id, user_id, name, description, start_date_time, end_date_time, issue_date,
+            location, attendees, update_date, photos, video, pdf, media_photos, type,
+            media_video_urls, media_other_urls)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          event_id, user_id, name, description,
+          formattedStart, formattedEnd, formattedIssue,
+          location, attendees, update_date,
+          JSON.stringify(photos), video, pdf, JSON.stringify(media_photos), type,
+          media_video_urls || null, media_other_urls || null
+        ]
+      );
+    }
+
+    res.json({ 
+      success: true, 
+      photos, 
+      video, 
+      pdf, 
+      media_photos,
+      media_video_urls,
+      media_other_urls
+    });
   } catch (err) {
     console.error("updateEvent error:", err);
     res.status(500).json({ error: "सर्वर त्रुटि", details: err.message });
   }
 };
-
 exports.addEvent = async (req, res) => {
   try {
     const {
@@ -154,6 +209,11 @@ exports.addEvent = async (req, res) => {
       video = await uploadToS3(req.files.video[0], "event_videos");
     }
 
+    let pdf = null;
+    if (req.files?.pdf?.[0]) {
+      pdf = await uploadToS3(req.files.pdf[0], "event_pdfs");
+    }
+
     const endDate = new Date(end_date_time);
     const now = new Date();
     const fiveDaysAgo = new Date();
@@ -162,8 +222,8 @@ exports.addEvent = async (req, res) => {
 
     const [result] = await db.query(
       `INSERT INTO events
-         (name, description, start_date_time, end_date_time, issue_date, location, type, status, photos, video)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (name, description, start_date_time, end_date_time, issue_date, location, type, status, photos, video, pdf)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         name,
         description,
@@ -174,7 +234,8 @@ exports.addEvent = async (req, res) => {
         type,
         status,
         JSON.stringify(photos),
-        video
+        video,
+        pdf
       ]
     );
 
@@ -194,7 +255,6 @@ exports.addEvent = async (req, res) => {
     res.status(500).json({ error: "डेटाबेस त्रुटि", details: err.message });
   }
 };
-
 exports.getEventReport = async (req, res) => {
   try {
     const { event_id } = req.params;
@@ -207,7 +267,18 @@ exports.getEventReport = async (req, res) => {
         WHERE eu.event_id = ? AND u.Designation != "Admin"`,
       [event_id, event_id, event_id]
     );
-    const [events] = await db.query('SELECT * FROM events WHERE id = ?', [event_id]);
+    
+    // Get event data including the URL fields
+    const [events] = await db.query(
+      `SELECT e.*, 
+              eu.media_video_urls, eu.media_other_urls
+       FROM events e
+       LEFT JOIN event_updates eu ON e.id = eu.event_id
+       WHERE e.id = ?
+       LIMIT 1`,
+      [event_id]
+    );
+    
     res.json({ users, event: events[0] });
   } catch (err) {
     console.error("getEventReport error:", err);
@@ -215,14 +286,17 @@ exports.getEventReport = async (req, res) => {
   }
 };
 
+
+
 exports.getUserEventDetails = async (req, res) => {
   try {
     const { event_id, user_id } = req.params;
     const [rows] = await db.query(
-      `SELECT * FROM event_updates
-         WHERE event_id = ? AND user_id = ?
-         ORDER BY update_date DESC, id DESC
-         LIMIT 1`,
+      `SELECT *, media_video_urls, media_other_urls 
+       FROM event_updates
+       WHERE event_id = ? AND user_id = ?
+       ORDER BY update_date DESC, id DESC
+       LIMIT 1`,
       [event_id, user_id]
     );
     res.json(rows[0] || {});
@@ -232,7 +306,6 @@ exports.getUserEventDetails = async (req, res) => {
   }
 };
 
-// Development-only: Delete events by status
 exports.deleteEventsByStatus = async (req, res) => {
   try {
     const { status } = req.query;
@@ -253,5 +326,50 @@ exports.deleteEventsByStatus = async (req, res) => {
   } catch (err) {
     console.error("deleteEventsByStatus error:", err);
     res.status(500).json({ error: "डेटाबेस त्रुटि", details: err.message });
+  }
+};
+
+
+exports.downloadPDF = async (req, res) => {
+  try {
+    const { event_id } = req.params;
+    
+    const [events] = await db.query('SELECT pdf FROM events WHERE id = ?', [event_id]);
+    
+    if (!events.length || !events[0].pdf) {
+      return res.status(404).json({ error: 'PDF not found' });
+    }
+    
+    const pdfUrl = events[0].pdf;
+    
+    const urlParts = pdfUrl.split('/');
+    const key = urlParts.slice(3).join('/');
+    
+    const params = {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: key
+    };
+    
+    const headResult = await s3.headObject(params).promise();
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Length', headResult.ContentLength);
+    res.setHeader('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
+    
+    const fileStream = s3.getObject(params).createReadStream();
+    fileStream.pipe(res);
+    
+  } catch (err) {
+    console.error("downloadPDF error:", err);
+    res.status(500).json({ error: "सर्वर त्रुटि", details: err.message });
+  }
+};
+
+const isValidUrl = (url) => {
+  try {
+    new URL(url);
+    return true;
+  } catch (error) {
+    return false;
   }
 };

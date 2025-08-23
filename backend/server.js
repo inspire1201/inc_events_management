@@ -10,9 +10,9 @@ const app = express();
 
 const allowedOrigins = [
   'http://localhost:5173',
-  // 'http://44.197.21.241',
-  // 'http://44.197.21.241:3000',
-  // 'https://44.197.21.241',
+  'http://44.197.21.241',
+  'http://44.197.21.241:3000',
+  'https://44.197.21.241',
 ];
 
 const corsOptions = {

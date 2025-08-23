@@ -1,4 +1,3 @@
-
 const express = require('express');
 const router = express.Router();
 const eventController = require('../controllers/eventController');
@@ -13,6 +12,7 @@ router.post(
     { name: 'photos', maxCount: 10 },
     { name: 'video', maxCount: 1 },
     { name: 'media_photos', maxCount: 5 },
+    { name: 'pdf', maxCount: 1 }, 
   ]),
   eventController.updateEvent
 );
@@ -22,10 +22,12 @@ router.post(
   upload.fields([
     { name: 'photos', maxCount: 10 },
     { name: 'video', maxCount: 1 },
+    { name: 'pdf', maxCount: 1 }, // Add PDF support for new events
   ]),
   eventController.addEvent
 );
 
+router.get('/event_pdf/:event_id', eventController.downloadPDF);
 router.get('/event_report/:event_id', eventController.getEventReport);
 router.get('/event_user_details/:event_id/:user_id', eventController.getUserEventDetails);
 

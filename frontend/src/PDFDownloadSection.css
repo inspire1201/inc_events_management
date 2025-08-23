@@ -1,0 +1,89 @@
+/* PDF Section Styling */
+.event-pdf-section {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.event-pdf-section h3 {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pdf-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+/* PDF Button Styling */
+.pdf-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.pdf-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.download-pdf {
+  background-color: #4e54c8;
+  color: white;
+}
+
+.download-pdf:hover:not(:disabled) {
+  background-color: #3a3eb3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(78, 84, 200, 0.3);
+}
+
+.download-pdf:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Download Status */
+.download-status {
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.download-status.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.download-status.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .pdf-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .download-status {
+    margin-top: 10px;
+  }
+}

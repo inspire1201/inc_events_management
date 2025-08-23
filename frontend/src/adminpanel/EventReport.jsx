@@ -4,6 +4,8 @@ import Modal from './Modal';
 import ReactDOMServer from 'react-dom/server';
 import PdfExportButton from './PdfExportButton';
 import { useLanguage } from '../context/LanguageContext';
+import { Download, FileText, ExternalLink } from 'lucide-react'; // Import icons
+import PDFDownloadSection from '../PDFDownloadSection';
 
 const TEXT = {
   en: {
@@ -26,6 +28,9 @@ const TEXT = {
     notUpdated: 'Not Updated',
     action: 'Action',
     showDetails: 'Details',
+    viewPdf: 'View PDF', // New
+    downloadPdf: 'Download PDF', // New
+    attachedPdf: 'Attached PDF', // New
   },
   hi: {
     title: 'आयोजन रिपोर्ट',
@@ -47,12 +52,17 @@ const TEXT = {
     notUpdated: 'नहीं अपडेट किया गया',
     action: 'कार्रवाई',
     showDetails: 'विवरण ',
+    viewPdf: 'PDF देखें', // New
+    downloadPdf: 'PDF डाउनलोड करें', // New
+    attachedPdf: 'संलग्न PDF', // New
   },
 };
 
 const EventReport = ({ showReport, onClose, handleShowUserDetails, formatDateTime }) => {
   const { language } = useLanguage();
   const [filter, setFilter] = useState('all');
+  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState('');
   const t = TEXT[language] || TEXT.hi;
   const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -115,7 +125,6 @@ const EventReport = ({ showReport, onClose, handleShowUserDetails, formatDateTim
     return true;
   });
 
-
   const headerHtml = `
   <div class="event-details-box">
     <div><b>${t.name}</b> ${showReport.event.name}</div>
@@ -127,181 +136,214 @@ const EventReport = ({ showReport, onClose, handleShowUserDetails, formatDateTim
   </div>
 `;
 
-
   return (
-    <Modal>
-      <div className="event-report-modal">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ margin: "0" }}>{t.title}</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-red-600 text-3xl font-bold focus:outline-none"
-            aria-label="Close"
-          >
-            &times;
-          </button>
-        </div>
-        <div id="event-report-pdf-section">
-          <div className="event-details-box">
-            <div><b>{t.name}</b> {showReport.event.name}</div>
-            <div><b>{t.desc}</b> {showReport.event.description}</div>
-            <div><b>{t.start}</b> {formatDateTime(showReport.event.start_date_time).date} {formatDateTime(showReport.event.start_date_time).time}</div>
-            <div><b>{t.end}</b> {formatDateTime(showReport.event.end_date_time).date} {formatDateTime(showReport.event.end_date_time).time}</div>
-            <div><b>{t.issue}</b> {formatDateTime(showReport.event.issue_date).date}</div>
-            <div><b>{t.type}</b> {showReport.event.type}</div>
+    <>
+      <Modal>
+        <div className="event-report-modal">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ margin: "0" }}>{t.title}</h3>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-red-600 text-3xl font-bold focus:outline-none"
+              aria-label="Close"
+            >
+              &times;
+            </button>
           </div>
-          <div className="event-media-section">
-            <h3>Photo Covers</h3>
-            {/* Photos */}
-            {(() => {
-              let photosArr = [];
-              const photosRaw = showReport.event.photos;
-              if (photosRaw) {
-                if (Array.isArray(photosRaw)) {
-                  photosArr = photosRaw;
-                } else if (typeof photosRaw === 'string') {
-                  // Try JSON parse
-                  try {
-                    const parsed = JSON.parse(photosRaw);
-                    if (Array.isArray(parsed)) {
-                      photosArr = parsed;
-                    } else if (typeof parsed === 'string') {
-                      photosArr = [parsed];
-                    } else {
+          <div id="event-report-pdf-section">
+            <div className="event-details-box">
+              <div><b>{t.name}</b> {showReport.event.name}</div>
+              <div><b>{t.desc}</b> {showReport.event.description}</div>
+              <div><b>{t.start}</b> {formatDateTime(showReport.event.start_date_time).date} {formatDateTime(showReport.event.start_date_time).time}</div>
+              <div><b>{t.end}</b> {formatDateTime(showReport.event.end_date_time).date} {formatDateTime(showReport.event.end_date_time).time}</div>
+              <div><b>{t.issue}</b> {formatDateTime(showReport.event.issue_date).date}</div>
+              <div><b>{t.type}</b> {showReport.event.type}</div>
+            </div>
+
+
+
+            {showReport.event.pdf && (
+              <PDFDownloadSection
+                event={showReport.event}
+                apiUrl={apiUrl}
+                showViewButton={true}       
+                showDownloadButton={true}
+              />
+            )}
+
+            <div className="event-media-section">
+              <h3>Photo Covers</h3>
+              {/* Photos */}
+              {(() => {
+                let photosArr = [];
+                const photosRaw = showReport.event.photos;
+                if (photosRaw) {
+                  if (Array.isArray(photosRaw)) {
+                    photosArr = photosRaw;
+                  } else if (typeof photosRaw === 'string') {
+                    // Try JSON parse
+                    try {
+                      const parsed = JSON.parse(photosRaw);
+                      if (Array.isArray(parsed)) {
+                        photosArr = parsed;
+                      } else if (typeof parsed === 'string') {
+                        photosArr = [parsed];
+                      } else {
+                        photosArr = photosRaw.split(',').map(s => s.trim()).filter(Boolean);
+                      }
+                    } catch {
                       photosArr = photosRaw.split(',').map(s => s.trim()).filter(Boolean);
                     }
-                  } catch {
-                    photosArr = photosRaw.split(',').map(s => s.trim()).filter(Boolean);
                   }
                 }
-              }
-              photosArr = photosArr.filter(p => !!p && typeof p === 'string');
-              if (photosArr.length === 1) {
-                return (
-                  <div className="event-photos collage-single" style={{ border: '1px solid #eee', minHeight: '120px' }}>
-                    <div className="collage-photo" style={{ width: '100%', height: '100%', borderRadius: '8px', overflow: 'hidden' }}>
-                      <img
-                        src={photosArr[0].startsWith('http') ? photosArr[0] : `${apiUrl}${photosArr[0]}`}
-                        alt="Photo"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        crossOrigin="anonymous"
-                      />
-                    </div>
-                  </div>
-                );
-              } else if (photosArr.length > 1) {
-                return (
-                  <div className="event-photos collage-flex" style={{ border: '1px solid #eee', minHeight: '120px' }}>
-                    {photosArr.map((photo, idx) => (
-                      <div
-                        key={idx}
-                        className="collage-photo"
-                        style={{
-                          flex: `${ratios[idx] || 1} 1 0%`,
-                          aspectRatio: ratios[idx] ? `${ratios[idx]}` : '1/1',
-                          borderRadius: '8px',
-                          overflow: 'hidden',
-                          minWidth: '80px',
-                          maxWidth: '100%'
-                        }}
-                      >
+                photosArr = photosArr.filter(p => !!p && typeof p === 'string');
+                if (photosArr.length === 1) {
+                  return (
+                    <div className="event-photos collage-single" style={{ border: '1px solid #eee', minHeight: '120px' }}>
+                      <div className="collage-photo" style={{ width: '100%', height: '100%', borderRadius: '8px', overflow: 'hidden' }}>
                         <img
-                          src={photo.startsWith('http') ? photo : `${apiUrl}${photo}`}
+                          src={photosArr[0].startsWith('http') ? photosArr[0] : `${apiUrl}${photosArr[0]}`}
                           alt="Photo"
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           crossOrigin="anonymous"
                         />
                       </div>
-                    ))}
-                  </div>
-                );
-              } else {
-                return <div style={{ textAlign: 'center', color: '#aaa', fontSize: '16px' }}>No photos available / कोई फोटो नहीं</div>;
-              }
-            })()}
-            {/* Video */}
-            {showReport.event.video && (
-              <div className="event-video-wrapper">
-                <video
-                  controls
-                  src={showReport.event.video.startsWith('http') ? showReport.event.video : `${apiUrl}${showReport.event.video}`}
-                  className="event-video"
-                />
-              </div>
-            )}
-          </div>
-          <div className="event-stats-box">
-            <div className="event-stats">
-              {showReport.users.length} {t.statsViewed} {showReport.users.filter(u => u.viewed > 0).length} / {showReport.users.length} |{' '}
-              {showReport.users.length} {t.statsUpdated} {showReport.users.filter(u => u.updated > 0).length} / {showReport.users.length}
+                    </div>
+                  );
+                } else if (photosArr.length > 1) {
+                  return (
+                    <div className="event-photos collage-flex" style={{ border: '1px solid #eee', minHeight: '120px' }}>
+                      {photosArr.map((photo, idx) => (
+                        <div
+                          key={idx}
+                          className="collage-photo"
+                          style={{
+                            flex: `${ratios[idx] || 1} 1 0%`,
+                            aspectRatio: ratios[idx] ? `${ratios[idx]}` : '1/1',
+                            borderRadius: '8px',
+                            overflow: 'hidden',
+                            minWidth: '80px',
+                            maxWidth: '100%'
+                          }}
+                        >
+                          <img
+                            src={photo.startsWith('http') ? photo : `${apiUrl}${photo}`}
+                            alt="Photo"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            crossOrigin="anonymous"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  );
+                } else {
+                  return <div style={{ textAlign: 'center', color: '#aaa', fontSize: '16px' }}>No photos available / कोई फोटो नहीं</div>;
+                }
+              })()}
+              {/* Video */}
+              {showReport.event.video && (
+                <div className="event-video-wrapper">
+                  <video
+                    controls
+                    src={showReport.event.video.startsWith('http') ? showReport.event.video : `${apiUrl}${showReport.event.video}`}
+                    className="event-video"
+                  />
+                </div>
+              )}
             </div>
-          </div>
-          <div className='dropdwon pdf-hide'>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px' }}>
-              <div>
-
-
-                <PdfExportButton targetId="event-report-pdf-section" filename="event-report.pdf" headerHtml={headerHtml} />
+            <div className="event-stats-box">
+              <div className="event-stats">
+                {showReport.users.length} {t.statsViewed} {showReport.users.filter(u => u.viewed > 0).length} / {showReport.users.length} |{' '}
+                {showReport.users.length} {t.statsUpdated} {showReport.users.filter(u => u.updated > 0).length} / {showReport.users.length}
               </div>
-              <select value={filter} onChange={e => setFilter(e.target.value)} style={{ padding: '4px 8px', borderRadius: '4px' }}>
-                <option value="all">All</option>
-                <option value="viewed">Viewed</option>
-                <option value="notViewed">Not Viewed</option>
-                <option value="updated">Updated</option>
-                <option value="notUpdated">Not Updated</option>
-              </select>
             </div>
-          </div>
-          <div className="event-report-table-wrapper">
-            <table className="event-report-table">
-              <thead>
-                <tr>
-                  <th>{t.sn}</th>
-                  <th>{t.userName}</th>
-                  <th>{t.designation}</th>
-                  <th>{t.viewed}</th>
-                  <th>{t.updated}</th>
-                  <th className="pdf-action-col">{t.action}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.map((user, idx) => (
-                  <tr key={user.ID}>
-                    <td>{idx + 1}</td>
-                    <td>{user.name}</td>
-                    <td>{user.designation}</td>
-                    <td>
-                      <span style={{ color: user.viewed > 0 ? 'green' : 'red', fontWeight: 'bold' }}>
-                        {user.viewed > 0 ? t.seen : t.unseen}
-                      </span>
-                    </td>
-                    <td>
-                      <span style={{ color: user.updated > 0 ? 'green' : 'red', fontWeight: 'bold' }}>
-                        {user.updated > 0 ? t.updated : t.notUpdated}
-                      </span>
-                    </td>
-                    <td className="pdf-action-col">
-                      <button onClick={() => handleShowUserDetails(showReport.event.id, user)}>{t.showDetails}</button>
-                    </td>
+            <div className='dropdwon pdf-hide'>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px' }}>
+                <div>
+                  <PdfExportButton targetId="event-report-pdf-section" filename="event-report.pdf" headerHtml={headerHtml} />
+                </div>
+                <select value={filter} onChange={e => setFilter(e.target.value)} style={{ padding: '4px 8px', borderRadius: '4px' }}>
+                  <option value="all">All</option>
+                  <option value="viewed">Viewed</option>
+                  <option value="notViewed">Not Viewed</option>
+                  <option value="updated">Updated</option>
+                  <option value="notUpdated">Not Updated</option>
+                </select>
+              </div>
+            </div>
+            <div className="event-report-table-wrapper">
+              <table className="event-report-table">
+                <thead>
+                  <tr>
+                    <th>{t.sn}</th>
+                    <th>{t.userName}</th>
+                    <th>{t.designation}</th>
+                    <th>{t.viewed}</th>
+                    <th>{t.updated}</th>
+                    <th className="pdf-action-col">{t.action}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className="flex justify-end mt-4">
+                </thead>
+                <tbody>
+                  {filteredUsers.map((user, idx) => (
+                    <tr key={user.ID}>
+                      <td>{idx + 1}</td>
+                      <td>{user.name}</td>
+                      <td>{user.designation}</td>
+                      <td>
+                        <span style={{ color: user.viewed > 0 ? 'green' : 'red', fontWeight: 'bold' }}>
+                          {user.viewed > 0 ? t.seen : t.unseen}
+                        </span>
+                      </td>
+                      <td>
+                        <span style={{ color: user.updated > 0 ? 'green' : 'red', fontWeight: 'bold' }}>
+                          {user.updated > 0 ? t.updated : t.notUpdated}
+                        </span>
+                      </td>
+                      <td className="pdf-action-col">
+                        <button onClick={() => handleShowUserDetails(showReport.event.id, user)}>{t.showDetails}</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="flex justify-end mt-4">
+                <button
+                  onClick={onClose}
+                  className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
+                >
+                  EXIT
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* PDF Viewer Modal */}
+      {pdfViewerOpen && (
+        <Modal onClose={() => setPdfViewerOpen(false)} wide={true}>
+          <div className="pdf-viewer-modal">
+            <div className="pdf-viewer-header">
+              <h3>PDF Document</h3>
               <button
-                onClick={onClose}
-                className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
+                onClick={() => setPdfViewerOpen(false)}
+                className="close-button"
               >
-                EXIT
+                &times;
               </button>
             </div>
-
-
+            <div className="pdf-viewer-content">
+              <iframe
+                src={pdfUrl}
+                className="pdf-iframe"
+                title="PDF Document"
+              />
+            </div>
           </div>
-        </div>  
-      </div>
-    </Modal>
+        </Modal>
+      )}
+    </>
   );
 };
 
-export default EventReport; 
+export default EventReport;

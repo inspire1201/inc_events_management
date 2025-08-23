@@ -15,7 +15,6 @@ const UserVisits = () => {
 
         const fetchUserData = async () => {
             try {
-                http://44.197.21.241:5000
                 const lastVisitRes = await axios.get(`${apiUrl}/api/last-visit/${user.userId}`);
                 setLastVisit(lastVisitRes.data.lastVisit);
 

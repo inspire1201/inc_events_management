@@ -1,39 +1,8 @@
-// import React, { useState, useEffect } from 'react';
-
-// function DateTimeDisplay() {
-//   const [currentDateTime, setCurrentDateTime] = useState(new Date());
-
-//   // Update the time every second
-//   useEffect(() => {
-//     const interval = setInterval(() => {
-//       setCurrentDateTime(new Date());
-//     }, 1000);
-
-//     return () => clearInterval(interval); // Cleanup
-//   }, []);
-
-//   // Format the date and time
-//   const formattedDate = currentDateTime.toLocaleDateString();
-//   const formattedTime = currentDateTime.toLocaleTimeString();
-//   const formattedDateForInput = currentDateTime.toISOString().split('T')[0]; // YYYY-MM-DD
-
-
-//   return (
-//     <div>
-//       <h2>Today's Date: {formattedDate}</h2>
-//       <h2>Current Time: {formattedTime}</h2>
-//       <h2>formatt date : {formattedDateForInput}</h2>
-//     </div>
-//   );
-// }
-
-// export default DateTimeDisplay;
 import React, { useState, useEffect } from 'react';
 
 function DateTimeForm() {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
-  // Update every second (real-time)
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentDateTime(new Date());
@@ -42,7 +11,6 @@ function DateTimeForm() {
     return () => clearInterval(interval);
   }, []);
 
-  // Format for <input type="datetime-local">
   const formatForDateTimeLocal = (date) => {
     const pad = (n) => n.toString().padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
@@ -50,12 +18,10 @@ function DateTimeForm() {
 
   const formattedDateTime = formatForDateTimeLocal(currentDateTime);
 
-  // Handle form submit
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     console.log('Submitted DateTime:', formData.get('issue_datetime'));
-    // You can send it to backend using fetch/axios
   };
 
   return (

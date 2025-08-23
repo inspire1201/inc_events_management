@@ -252,3 +252,72 @@
 .event-details > div:nth-child(8) { animation-delay: 0.7s; }
 .event-details > div:nth-child(9) { animation-delay: 0.8s; }
 .event-details > div:nth-child(10) { animation-delay: 0.9s; }
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.status-badge.updated {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.not-updated {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.user-updates-section {
+  border-top: 2px solid #e5e7eb;
+  padding-top: 1.5rem;
+}
+
+.field-comparison {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+}
+
+.field-name {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #374151;
+}
+
+.comparison-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.original-value, .updated-value {
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+}
+
+.original-value {
+  background-color: #fef2f2;
+  border-left: 4px solid #ef4444;
+}
+
+.updated-value {
+  background-color: #f0fdf4;
+  border-left: 4px solid #22c55e;
+}
+
+.label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+@media (max-width: 640px) {
+  .comparison-row {
+    grid-template-columns: 1fr;
+  }
+}

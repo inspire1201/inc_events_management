@@ -100,6 +100,7 @@ const Admin = () => {
     user: users[0],
     location: "",
     photos: null,
+    pdf: null,
   });
 
   useEffect(() => {
@@ -148,21 +149,37 @@ const Admin = () => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
   };
-  const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
 
-    const maxFiles = 10;
+  const handleFileChange = (e, fileType = "photos") => {
+    if (fileType === "photos") {
+      const selectedFiles = Array.from(e.target.files);
+      const maxFiles = 10;
+      const limitedFiles = selectedFiles.slice(0, maxFiles);
 
-    const limitedFiles = selectedFiles.slice(0, maxFiles);
+      if (selectedFiles.length > maxFiles) {
+        alert("Only the first 10 images will be used.");
+      }
 
-    if (selectedFiles.length > maxFiles) {
-      alert("Only the first 10 images will be used.");
+      setForm((prev) => ({
+        ...prev,
+        photos: limitedFiles,
+      }));
+    } else if (fileType === "pdf") {
+      const selectedFile = e.target.files[0];
+      if (selectedFile && selectedFile.type === "application/pdf") {
+        setForm((prev) => ({
+          ...prev,
+          pdf: selectedFile,
+        }));
+      } else {
+        alert("Please select a valid PDF file.");
+      }
     }
+  };
 
-    setForm((prev) => ({
-      ...prev,
-      photos: limitedFiles,
-    }));
+
+  const handleRemovePDF = () => {
+    setForm((prev) => ({ ...prev, pdf: null }));
   };
 
   const handleRemovePhoto = (idx) => {
@@ -205,6 +222,8 @@ const Admin = () => {
     Object.entries(form).forEach(([key, value]) => {
       if (key === "photos" && value) {
         Array.from(value).forEach((file) => formData.append("photos", file));
+      } else if (key === "pdf" && value) {
+        formData.append("pdf", value);
       } else if (
         key === "start_date_time" ||
         key === "end_date_time" ||
@@ -296,6 +315,7 @@ const Admin = () => {
       user: users[0],
       location: "",
       photos: null,
+      pdf: null,
     });
 
   const fileToBase64 = (file) =>
@@ -334,6 +354,13 @@ const Admin = () => {
         Array.from(form.photos).map(fileToBase64)
       );
     }
+
+    // PDF handling
+    if (form.pdf) {
+      pdfBase64 = await fileToBase64(form.pdf);
+    }
+
+
     if (form.video) {
       const videoFile = form.video[0];
       if (videoFile) {
@@ -399,6 +426,7 @@ const Admin = () => {
       const parsed = draft.data;
       let photosFiles = null;
       let videoFiles = null;
+      let pdfFile = null;
       if (parsed.photos && Array.isArray(parsed.photos)) {
         photosFiles = new DataTransfer();
         parsed.photos.forEach((b64, idx) => {
@@ -411,6 +439,16 @@ const Admin = () => {
           photosFiles.items.add(file);
         });
         photosFiles = photosFiles.files;
+      }
+      if (parsed.pdf) {
+        const b64 = parsed.pdf;
+        const mime = b64.substring(b64.indexOf(":") + 1, b64.indexOf(";"));
+        const file = base64ToFile(
+          b64,
+          `document.pdf`,
+          mime
+        );
+        pdfFile = file;
       }
       if (parsed.video && Array.isArray(parsed.video) && parsed.video[0]) {
         const b64 = parsed.video[0];
@@ -740,6 +778,7 @@ const Admin = () => {
                 handleFileChange={handleFileChange}
                 handleRemovePhoto={handleRemovePhoto}
                 language={language}
+                handleRemovePDF={handleRemovePDF}
               />
             </Modal>
           )}

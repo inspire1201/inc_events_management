@@ -3,7 +3,7 @@ import FirstPage from "./FirstPage";
 import LanguagePage from "./LanguagePage";
 import Login from "./LoginPage/Login";
 import Admin from "./adminpanel/Admin";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 import UserPanel from "./userpanel/userpanel";
 import Header from "./Header";
 import Home from "./Home";
@@ -11,17 +11,9 @@ import { useLanguage } from "./context/LanguageContext";
 
 function AppContent() {
   const { language, setLanguage } = useLanguage();
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const SESSION_KEY = "app_session_active";
-
-    if (!sessionStorage.getItem(SESSION_KEY)) {
-      localStorage.removeItem("user");
-      localStorage.removeItem("role");
-    }
-
-    sessionStorage.setItem(SESSION_KEY, "true");
-  }, []);
+  const SESSION_KEY = "app_session_active";
 
   const [step, setStep] = useState(() => {
     const savedStep = localStorage.getItem("appStep");
@@ -29,10 +21,26 @@ function AppContent() {
   });
 
   useEffect(() => {
+    if (!sessionStorage.getItem(SESSION_KEY)) {
+      localStorage.removeItem("user");
+      localStorage.removeItem("role");
+      localStorage.removeItem("appStep"); 
+      setStep(1);
+    }
+    sessionStorage.setItem(SESSION_KEY, "true");
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem("appStep", step);
   }, [step]);
 
-  // ✅ Handle onboarding steps FIRST, independent of route
+  const handleLogout = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    setStep(1);  
+    navigate("/"); 
+  };
+
   if (step === 1) {
     return <FirstPage onStart={() => setStep(2)} />;
   }
@@ -49,10 +57,9 @@ function AppContent() {
     );
   }
 
-  // ✅ After step 3, use proper routing
   return (
     <>
-      <Header />
+      <Header onLogout={handleLogout} />
       <Routes>
         <Route path="/" element={<Login language={language} />} />
         <Route path="/home" element={<Home />} />
@@ -72,4 +79,3 @@ function App() {
 }
 
 export default App;
-

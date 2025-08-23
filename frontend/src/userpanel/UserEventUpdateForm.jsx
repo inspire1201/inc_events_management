@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import Swal from "sweetalert2";
 import { useLanguage } from "../context/LanguageContext";
@@ -17,7 +16,12 @@ const TEXT = {
     photos: "Photos (max 10):",
     video: "Video (max 10 MB):",
     mediaPhotos: "Media Coverage Photos (max 5):",
+    youtubeUrl: "YouTube Video URL:",
+    otherUrls: "Other URLs (comma separated):",
     updateBtn: "Update",
+    urlPlaceholder: "https://youtube.com/watch?v=...",
+    otherUrlsPlaceholder: "https://example1.com, https://example2.com",
+    pdf: "PDF Document (max 5 MB):", // Added PDF field text
   },
   hi: {
     title: "आयोजन अपडेट करें",
@@ -32,7 +36,12 @@ const TEXT = {
     photos: "फोटो (अधिकतम 10):",
     video: "वीडियो (अधिकतम 10 MB):",
     mediaPhotos: "मीडिया कवरेज फोटो (अधिकतम 5):",
+    youtubeUrl: "YouTube वीडियो URL:",
+    otherUrls: "अन्य URLs (comma separated):",
     updateBtn: "अपडेट करें",
+    urlPlaceholder: "https://youtube.com/watch?v=...",
+    otherUrlsPlaceholder: "https://example1.com, https://example2.com",
+    pdf: "PDF दस्तावेज़ (अधिकतम 5 MB):", // Added PDF field text
   },
 };
 
@@ -71,17 +80,19 @@ const UserEventUpdateForm = ({
     video: Array.isArray(updateForm?.video)
       ? updateForm.video
       : updateForm?.video
-      ? [updateForm.video]
-      : [],
+        ? [updateForm.video]
+        : [],
     media_photos: updateForm?.media_photos || [],
+    pdf: updateForm?.pdf || null, // Added PDF to localMedia
   });
 
   const [photosProgress, setPhotosProgress] = useState(0);
   const [videoProgress, setVideoProgress] = useState(0);
   const [mediaPhotosProgress, setMediaPhotosProgress] = useState(0);
+  const [pdfProgress, setPdfProgress] = useState(0); // Added PDF progress
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const timersRef = useRef({ photos: null, video: null, media_photos: null });
+  const timersRef = useRef({ photos: null, video: null, media_photos: null, pdf: null }); // Added PDF timer
 
   useEffect(() => {
     if (!updateForm) return;
@@ -96,9 +107,10 @@ const UserEventUpdateForm = ({
       video: Array.isArray(updateForm?.video)
         ? updateForm.video
         : updateForm?.video
-        ? [updateForm.video]
-        : [],
+          ? [updateForm.video]
+          : [],
       media_photos: updateForm?.media_photos || [],
+      pdf: updateForm?.pdf || null, // Initialize PDF from updateForm
     });
   }, [updateForm]);
 
@@ -106,6 +118,7 @@ const UserEventUpdateForm = ({
     photos: setPhotosProgress,
     video: setVideoProgress,
     media_photos: setMediaPhotosProgress,
+    pdf: setPdfProgress, // Added PDF progress setter
   };
 
   const startSimulatedProgress = (name) => {
@@ -170,6 +183,36 @@ const UserEventUpdateForm = ({
         return;
       }
     }
+    
+    // PDF validation
+    if (name === "pdf" && files?.length) {
+      const file = files[0];
+      // Check if file is PDF
+      if (file.type !== "application/pdf") {
+        Swal.fire({
+          icon: "warning",
+          title: language === "hi" ? "अमान्य फ़ाइल प्रकार" : "Invalid file type",
+          text: language === "hi" 
+            ? "कृपया केवल PDF फ़ाइलें अपलोड करें।" 
+            : "Please upload only PDF files.",
+        });
+        e.target.value = "";
+        return;
+      }
+      
+      // Check file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        Swal.fire({
+          icon: "warning",
+          title: language === "hi" ? "फ़ाइल बहुत बड़ी है" : "File too large",
+          text: language === "hi" 
+            ? "कृपया 5 MB से छोटी PDF फ़ाइलें अपलोड करें।" 
+            : "Please upload PDF files smaller than 5 MB.",
+        });
+        e.target.value = "";
+        return;
+      }
+    }
 
     setLocalMedia((prev) => ({ ...prev, [name]: files }));
 
@@ -179,6 +222,7 @@ const UserEventUpdateForm = ({
       if (name === "photos") setPhotosProgress(0);
       if (name === "video") setVideoProgress(0);
       if (name === "media_photos") setMediaPhotosProgress(0);
+      if (name === "pdf") setPdfProgress(0); // Reset PDF progress
     }
   };
 
@@ -191,6 +235,8 @@ const UserEventUpdateForm = ({
     "location",
     "attendees",
     "type",
+    "media_video_urls",
+    "media_other_urls",
   ];
 
   const onUpdateSubmitWithProgress = async (e) => {
@@ -218,6 +264,9 @@ const UserEventUpdateForm = ({
       if (localMedia.media_photos?.length) {
         Array.from(localMedia.media_photos).forEach((f) => formData.append("media_photos", f));
       }
+      if (localMedia.pdf?.length) {
+        Array.from(localMedia.pdf).forEach((f) => formData.append("pdf", f)); // Append PDF files
+      }
 
       onSubmitWithProgress(formData);
       onClose?.();
@@ -235,13 +284,17 @@ const UserEventUpdateForm = ({
   const isUpdateDisabled =
     (photosProgress > 0 && photosProgress < 100) ||
     (videoProgress > 0 && videoProgress < 100) ||
-    (mediaPhotosProgress > 0 && mediaPhotosProgress < 100);
+    (mediaPhotosProgress > 0 && mediaPhotosProgress < 100) ||
+    (pdfProgress > 0 && pdfProgress < 100); // Added PDF progress check
 
   const toDatetimeLocal = (d) => (d ? new Date(d).toISOString().slice(0, 16) : "");
 
-  // --- NEW FUNCTION: remove any file from previews ---
   const removeFile = (type, index) => {
     setLocalMedia((prev) => {
+      if (type === "pdf") {
+        // For PDF, we just clear it since it's a single file
+        return { ...prev, [type]: null };
+      }
       const updated = [...prev[type]];
       updated.splice(index, 1);
       return { ...prev, [type]: updated };
@@ -380,8 +433,39 @@ const UserEventUpdateForm = ({
           </label>
         </div>
 
-        {/* File Uploads */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* NEW: YouTube URL and Other URLs */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div>
+            <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-2">
+              {t.youtubeUrl}
+              <input
+                type="url"
+                name="media_video_urls"
+                value={localForm.media_video_urls || ""}
+                onChange={handleLocalFormChange}
+                placeholder={t.urlPlaceholder}
+                className="w-full mt-1 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </label>
+          </div>
+
+          <div>
+            <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-2">
+              {t.otherUrls}
+              <input
+                type="text"
+                name="media_other_urls"
+                value={localForm.media_other_urls || ""}
+                onChange={handleLocalFormChange}
+                placeholder={t.otherUrlsPlaceholder}
+                className="w-full mt-1 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </label>
+          </div>
+        </div>
+
+        {/* File Uploads - Updated to include PDF */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
           {/* Photos */}
           <div>
             <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-2">
@@ -395,12 +479,34 @@ const UserEventUpdateForm = ({
                 className="w-full mt-1 p-3 border border-gray-300 rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
               />
             </label>
+
             {photosProgress > 0 && (
               <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                 <div
                   className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${photosProgress}%` }}
                 />
+              </div>
+            )}
+
+            {/* Photos Preview */}
+            {localMedia.photos?.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                {Array.from(localMedia.photos).map((file, idx) => {
+                  const url = file instanceof File ? URL.createObjectURL(file) : file;
+                  return (
+                    <div key={idx} className="relative h-24 border border-gray-300 rounded-md overflow-hidden">
+                      <img src={url} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeFile("photos", idx)}
+                        className="absolute top-1 right-1 bg-black text-white w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-600 transition"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -417,12 +523,34 @@ const UserEventUpdateForm = ({
                 className="w-full mt-1 p-3 border border-gray-300 rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
               />
             </label>
+
             {videoProgress > 0 && (
               <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                 <div
                   className="bg-green-500 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${videoProgress}%` }}
                 />
+              </div>
+            )}
+
+            {/* Video Preview */}
+            {localMedia.video?.length > 0 && (
+              <div className="mt-4 grid grid-cols-1 gap-3">
+                {Array.from(localMedia.video).map((file, idx) => {
+                  const url = file instanceof File ? URL.createObjectURL(file) : file;
+                  return (
+                    <div key={idx} className="relative h-40 border border-gray-300 rounded-md overflow-hidden">
+                      <video src={url} controls className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeFile("video", idx)}
+                        className="absolute top-1 right-1 bg-black text-white w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-600 transition"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -440,6 +568,7 @@ const UserEventUpdateForm = ({
                 className="w-full mt-1 p-3 border border-gray-300 rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
               />
             </label>
+
             {mediaPhotosProgress > 0 && (
               <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                 <div
@@ -448,83 +577,90 @@ const UserEventUpdateForm = ({
                 />
               </div>
             )}
+
+            {/* Media Photos Preview */}
+            {localMedia.media_photos?.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                {Array.from(localMedia.media_photos).map((file, idx) => {
+                  const url = file instanceof File ? URL.createObjectURL(file) : file;
+                  return (
+                    <div key={idx} className="relative h-24 border border-gray-300 rounded-md overflow-hidden">
+                      <img src={url} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeFile("media_photos", idx)}
+                        className="absolute top-1 right-1 bg-black text-white w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-600 transition"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        </div>
 
-        {/* Previews */}
-        <div className="mb-8">
-          {/* Photos Preview */}
-          {localMedia.photos?.length > 0 && (
-            <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {Array.from(localMedia.photos).map((file, idx) => {
-                const url = file instanceof File ? URL.createObjectURL(file) : file;
-                return (
-                  <div key={idx} className="relative h-24 border border-gray-300 rounded-md overflow-hidden">
-                    <img src={url} alt="Preview" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removeFile("photos", idx)}
-                      className="absolute top-1 right-1 bg-black text-white w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-600 transition"
-                    >
-                      ×
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          {/* PDF Upload */}
+          <div>
+            <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-2">
+              {t.pdf}
+              <input
+                type="file"
+                name="pdf"
+                accept="application/pdf"
+                onChange={customHandleFileChange}
+                className="w-full mt-1 p-3 border border-gray-300 rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+              />
+            </label>
 
-          {/* Video Preview */}
-          {localMedia.video?.length > 0 && (
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {Array.from(localMedia.video).map((file, idx) => {
-                const url = file instanceof File ? URL.createObjectURL(file) : file;
-                return (
-                  <div key={idx} className="relative h-40 border border-gray-300 rounded-md overflow-hidden">
-                    <video src={url} controls className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removeFile("video", idx)}
-                      className="absolute top-1 right-1 bg-black text-white w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-600 transition"
-                    >
-                      ×
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+            {pdfProgress > 0 && (
+              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                <div
+                  className="bg-red-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${pdfProgress}%` }}
+                />
+              </div>
+            )}
 
-          {/* Media Photos Preview */}
-          {localMedia.media_photos?.length > 0 && (
-            <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {Array.from(localMedia.media_photos).map((file, idx) => {
-                const url = file instanceof File ? URL.createObjectURL(file) : file;
-                return (
-                  <div key={idx} className="relative h-24 border border-gray-300 rounded-md overflow-hidden">
-                    <img src={url} alt="Preview" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removeFile("media_photos", idx)}
-                      className="absolute top-1 right-1 bg-black text-white w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-600 transition"
-                    >
-                      ×
-                    </button>
+            {/* PDF Preview */}
+            {localMedia.pdf && (
+              <div className="mt-4">
+                <div className="flex items-center justify-between bg-gray-100 p-3 rounded-md border border-gray-300">
+                  <div className="flex items-center">
+                    <svg className="w-8 h-8 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {localMedia.pdf[0]?.name || "PDF Document"}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {localMedia.pdf[0]?.size ? `${(localMedia.pdf[0].size / 1024 / 1024).toFixed(2)} MB` : ""}
+                      </p>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
+                  <button
+                    type="button"
+                    onClick={() => removeFile("pdf")}
+                    className="text-gray-500 hover:text-red-600 focus:outline-none"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <button
           type="submit"
           disabled={isUpdateDisabled || isUpdating}
-          className={`w-full py-3 text-white font-semibold rounded-md transition ${
-            isUpdateDisabled || isUpdating
+          className={`w-full py-3 text-white font-semibold rounded-md transition ${isUpdateDisabled || isUpdating
               ? "bg-gray-400 cursor-not-allowed"
               : "bg-blue-600 hover:bg-blue-700"
-          }`}
+            }`}
         >
           {t.updateBtn}
         </button>
@@ -534,4 +670,3 @@ const UserEventUpdateForm = ({
 };
 
 export default UserEventUpdateForm;
-

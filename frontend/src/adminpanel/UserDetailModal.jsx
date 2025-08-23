@@ -1,4 +1,5 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
+import headerImg from '../assets/download.png'
 import Modal from './Modal';
 import UserDetailPdf from './UserDetailPdf';
 import ReactDOMServer from 'react-dom/server';
@@ -53,6 +54,7 @@ const TEXT = {
 };
 
 const UserDetailModal = ({ userDetailModal, onClose, formatDateTime }) => {
+  const [previewImg, setPreviewImg] = useState(null); 
   const { language } = useLanguage();
   const t = TEXT[language] || TEXT.hi;
   const API_URL = import.meta.env.VITE_API_URL;
@@ -67,6 +69,7 @@ const UserDetailModal = ({ userDetailModal, onClose, formatDateTime }) => {
         headerImg={headerImg}
       />
     );
+
 
     const printSection = document.createElement('div');
     printSection.innerHTML = pdfHtml;
@@ -88,6 +91,9 @@ const UserDetailModal = ({ userDetailModal, onClose, formatDateTime }) => {
       timer: 1800
     });
   };
+
+
+  // console.log("ssssssssssss", userDetailModal.details)
 
   return (
     <Modal onClose={onClose}>
@@ -112,67 +118,163 @@ const UserDetailModal = ({ userDetailModal, onClose, formatDateTime }) => {
             <div className="text-sm text-gray-800 flex flex-wrap items-center gap-1"><b className="text-purple-700 font-bold mr-1">{t.updateDate}</b>{formatDateTime(userDetailModal.details.update_date).date}</div>
             <div className="text-sm text-gray-800 flex flex-wrap items-center gap-1"><b className="text-purple-700 font-bold mr-1">{t.type}</b>{userDetailModal.details.type}</div>
 
-            {/* Photos */}
+
             {(() => {
-              let photosArr = [];
-              try {
-                photosArr = Array.isArray(userDetailModal.details.photos)
-                  ? userDetailModal.details.photos
-                  : JSON.parse(userDetailModal.details.photos);
-              } catch {
-                photosArr = [];
-              }
-              return photosArr.length > 0 ? (
-                <div>
-                  <b className="text-purple-700 font-bold">{t.photos}</b>
-                  <div className="flex flex-wrap gap-3 mt-2">
-                    {photosArr.map((photo, idx) => (
-                      <img
-                        key={idx}
-                        src={photo.startsWith('http') ? photo : `${API_URL}${photo}`}
-                        alt="Photo"
-                        className="w-28 h-20 sm:w-24 sm:h-16 object-cover rounded-md border-2 border-gray-200 shadow-md hover:border-indigo-500 transform hover:scale-105 transition-all"
-                      />
-                    ))}
+              const parseArray = (data) => {
+                try {
+                  return Array.isArray(data) ? data : JSON.parse(data);
+                } catch {
+                  return [];
+                }
+              };
+
+              const photos = parseArray(userDetailModal.details.photos);
+              const mediaPhotos = parseArray(userDetailModal.details.media_photos);
+              const video = userDetailModal.details.video;
+              const pdf = userDetailModal.details.pdf;
+
+              const handleImageClick = (src) => {
+                setPreviewImg(src.startsWith('http') ? src : `${API_URL}${src}`);
+              };
+
+              const renderPhotos = (label, photosArray) => (
+                photosArray.length > 0 && (
+                  <div className="mt-4">
+                    <b className="text-purple-700 font-bold">{label}</b>
+                    <div className="flex flex-wrap gap-3 mt-2">
+                      {photosArray.map((photo, idx) => {
+                        const src = photo.startsWith('http') ? photo : `${API_URL}${photo}`;
+                        return (
+                          <img
+                            key={idx}
+                            src={src}
+                            alt="Photo"
+                            className="w-28 h-20 sm:w-24 sm:h-16 object-cover rounded-md border-2 border-gray-200 shadow-md hover:border-indigo-500 transform hover:scale-105 transition-all cursor-pointer"
+                            onClick={() => handleImageClick(photo)} // ✅ Add click handler
+                          />
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ) : null;
+                )
+              );
+
+              const renderVideo = (videoUrl) => (
+                videoUrl ? (
+                  <div className="mt-4">
+                    <b className="text-purple-700 font-bold">{t.videos || 'Video'}</b>
+                    <div className="mt-2">
+                      <video
+                        controls
+                        className="w-64 h-36 rounded-md border-2 border-gray-200 shadow-md"
+                      >
+                        <source src={videoUrl} type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
+                  </div>
+                ) : null
+              );
+
+              const renderPdf = (pdfUrl) => (
+                pdfUrl ? (
+                  <div className="mt-4">
+                    <b className="text-purple-700 font-bold">{t.pdf || 'PDF'}</b>
+                    <div className="mt-2">
+                      <a
+                        href={pdfUrl}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block bg-indigo-600 text-white px-4 py-2 rounded-md shadow hover:bg-indigo-700 transition-all"
+                      >
+                        Download PDF
+                      </a>
+                    </div>
+                  </div>
+                ) : null
+              );
+
+              return (
+                <>
+                  <div>
+                    {renderPhotos(t.photos || 'Photos', photos)}
+                    {renderPhotos(t.media_photos || 'Media Photos', mediaPhotos)}
+                    {renderVideo(video)}
+                    {renderPdf(pdf)}
+                  </div>
+
+                  {/* ✅ Fullscreen Image Preview Modal */}
+                  {previewImg && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
+                      <span
+                        className="absolute top-4 right-6 text-white text-4xl cursor-pointer"
+                        onClick={() => setPreviewImg(null)}
+                      >
+                        &times;
+                      </span>
+                      <img
+                        src={previewImg}
+                        alt="Preview"
+                        className="max-h-full max-w-full object-contain rounded-md shadow-lg"
+                      />
+                    </div>
+                  )}
+                </>
+              );
             })()}
 
-            {/* Video */}
-            {userDetailModal.details.video && (
-              <div>
-                <b className="text-purple-700 font-bold">{t.video}</b>
-                <video
-                  controls
-                  src={
-                    userDetailModal.details.video.startsWith('http')
-                      ? userDetailModal.details.video
-                      : `${API_URL}${userDetailModal.details.video}`
-                  }
-                  className="block mx-auto my-4 w-[360px] max-w-full h-[220px] rounded-xl border-4 border-purple-700 shadow-lg object-cover"
-                />
-              </div>
-            )}
-
-            {/* Media Photos */}
-            {userDetailModal.details.media_photos && (
-              <div>
-                <b className="text-purple-700 font-bold">{t.mediaPhotos}</b>
-                <div className="flex flex-wrap gap-3 mt-2">
-                  {JSON.parse(userDetailModal.details.media_photos).map((photo, idx) => (
-                    <img
+            {/* 
+          
+            {/* Media Video URLs */}
+            {userDetailModal.details.media_video_urls && (
+              <div className="mt-3">
+                <b className="text-purple-700 font-bold mb-1 block">Video Links:</b>
+                <div className="flex flex-wrap gap-3">
+                  {(Array.isArray(userDetailModal.details.media_video_urls)
+                    ? userDetailModal.details.media_video_urls
+                    : [userDetailModal.details.media_video_urls]
+                  ).map((url, idx) => (
+                    <a
                       key={idx}
-                      src={photo.startsWith('http') ? photo : `${API_URL}${photo}`}
-                      alt="Media Photo"
-                      className="w-28 h-20 sm:w-24 sm:h-16 object-cover rounded-md border-2 border-gray-200 shadow-md hover:border-indigo-500 transform hover:scale-105 transition-all"
-                    />
+                      href={url.startsWith('http') ? url : `${API_URL}${url}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-indigo-600 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-gradient-to-r from-purple-700 to-indigo-500 transform hover:scale-105 transition-all"
+                    >
+                      Video Link {idx + 1}
+                    </a>
                   ))}
                 </div>
               </div>
             )}
+
+            {/* Media Other URLs */}
+            {userDetailModal.details.media_other_urls && (
+              <div className="mt-3">
+                <b className="text-purple-700 font-bold mb-1 block">Other URLs:</b>
+                <div className="flex flex-wrap gap-3">
+                  {(Array.isArray(userDetailModal.details.media_other_urls)
+                    ? userDetailModal.details.media_other_urls
+                    : [userDetailModal.details.media_other_urls]
+                  ).map((url, idx) => (
+                    <a
+                      key={idx}
+                      href={url.startsWith('http') ? url : `${API_URL}${url}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-green-600 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-gradient-to-r from-green-700 to-teal-500 transform hover:scale-105 transition-all"
+                    >
+                      Other URL {idx + 1}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
           </>
         )}
+
 
         <div className="mt-4 flex flex-wrap gap-4 justify-center">
           <button
